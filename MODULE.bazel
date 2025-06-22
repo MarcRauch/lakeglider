@@ -1,0 +1,6 @@
+bazel_dep(name = "pico-sdk", version = "2.1.1")
+
+register_toolchains(
+    "@pico-sdk//bazel/toolchain:linux-x86_64-rp2350",
+    "@pico-sdk//bazel/toolchain:mac-x86_64-rp2350",
+)

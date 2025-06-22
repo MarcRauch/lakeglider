@@ -1,0 +1,3 @@
+build:pico --platforms=@pico-sdk//bazel/platform:rp2350
+build:pico --aspects=@pico-sdk//tools:uf2_aspect.bzl%pico_uf2_aspect
+build:pico --output_groups=+pico_uf2_files
