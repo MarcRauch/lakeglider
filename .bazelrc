@@ -1,3 +1,6 @@
+build --cxxopt=-std=c++20
+
 build:pico --platforms=@pico-sdk//bazel/platform:rp2350
 build:pico --aspects=@pico-sdk//tools:uf2_aspect.bzl%pico_uf2_aspect
 build:pico --output_groups=+pico_uf2_files
+build:pico --@pico-sdk//bazel/config:PICO_STDIO_USB=true
