@@ -5,8 +5,7 @@
 
 #include "com/msg/Type.hh"
 
-namespace gl {
-namespace msg {
+namespace gl::msg {
 
 /**
 Header containing message metadata
@@ -17,9 +16,7 @@ struct __attribute__((packed)) Header {
   Type type;
   uint8_t deviceId;
   uint8_t msgLength;
-  uint64_t timestamp_us;
 };
-}  // namespace msg
-}  // namespace gl
+}  // namespace gl::msg
 
-#endif // GL_COM_MSG_HEADER_H_
+#endif  // GL_COM_MSG_HEADER_H_

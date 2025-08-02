@@ -5,18 +5,17 @@
 
 #include "com/msg/Type.hh"
 
-namespace gl {
-namespace msg {
+namespace gl::msg {
 
 /**
 Message for IMU reading.
 */
 struct __attribute__((packed)) Imu {
   static constexpr Type TYPE = Type::Imu;
+  uint64_t timestamp_us;
   float acc_mps2[3];
   float w_radps[3];
 };
-}  // namespace msg
-}  // namespace gl
+}  // namespace gl::msg
 
 #endif  // GL_COM_MSG_IMU_H_
