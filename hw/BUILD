@@ -1,7 +1,9 @@
-cc_binary(
-    name = "tes",
-    srcs = ["Test.cc"],
-    deps = [
-        "//com/msg:msgs",
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
+cc_library(
+    name = "pins",
+    hdrs = [
+        "Pins.hh",
     ],
+    visibility = ["//visibility:public"],
 )
