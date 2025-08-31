@@ -20,6 +20,7 @@ class IAdc {
    * @returns The read value normalized to [0,1]
    */
   virtual double read(PinAnalogSensor pinNr) const = 0;
+  virtual double read(PinAnalogActuator pinNr) const = 0;
 };
 
 }  // namespace gl::hw

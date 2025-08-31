@@ -20,3 +20,12 @@ cc_library(
     ],
     visibility = ["//visibility:public"],
 )
+
+cc_library(
+    name = "spiInterface",
+    srcs = [],
+    hdrs = [
+        "ISpi.hh",
+    ],
+    visibility = ["//visibility:public"],
+)

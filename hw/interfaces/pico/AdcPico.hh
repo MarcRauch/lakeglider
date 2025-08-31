@@ -18,6 +18,10 @@ class AdcPico : public IAdc {
   AdcPico();
 
   double read(PinAnalogSensor pin) const override;
+  double read(PinAnalogActuator pin) const override;
+
+ private:
+  double read(uint8_t pin) const;
 };
 
 }  // namespace gl::hw

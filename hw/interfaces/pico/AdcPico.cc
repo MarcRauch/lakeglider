@@ -8,7 +8,15 @@ AdcPico::AdcPico() {
 }
 
 double AdcPico::read(PinAnalogSensor pin) const {
-  adc_select_input(static_cast<uint8_t>(pin));
+  return read(static_cast<uint8_t>(pin));
+}
+
+double AdcPico::read(PinAnalogActuator pin) const {
+  return read(static_cast<uint8_t>(pin));
+}
+
+double AdcPico::read(uint8_t pin) const {
+  adc_select_input(pin);
   return static_cast<double>(adc_read()) / 4095.;
 }
 

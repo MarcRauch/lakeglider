@@ -1,17 +1,6 @@
 #include "hw/interfaces/pico/I2cPico.hh"
 
-#include <pico/stdlib.h>
-
 namespace gl::hw {
-I2cPico::I2cPico(i2c_inst_t* i2cInst, PinGpioSensor pinScl, PinGpioSensor pinSda)
-    : i2cInst(i2cInst), pinScl(pinScl), pinSda(pinSda) {
-  // TODO: Do this only once per interface, maybe let the user set the speed
-  gpio_set_function(static_cast<uint8_t>(pinScl), GPIO_FUNC_I2C);
-  gpio_set_function(static_cast<uint8_t>(pinSda), GPIO_FUNC_I2C);
-  gpio_pull_up(static_cast<uint8_t>(pinScl));
-  gpio_pull_up(static_cast<uint8_t>(pinSda));
-  i2c_init(i2cInst, 100 * 1000);
-}
 
 bool I2cPico::readBytes(uint8_t address, uint8_t numBytes, uint8_t* dest) {
   uint8_t bytesRead = i2c_read_timeout_us(i2cInst, address, dest, numBytes, false, 100 + 300 * numBytes);
