@@ -8,7 +8,7 @@
 namespace gl::hw {
 
 /**
-Interface for analog reading functionality.
+Interface for analog reading functionality. Assumes instance for each pin.
 */
 class IAdc {
  public:
@@ -16,11 +16,9 @@ class IAdc {
 
   /**
    * Read the current ADC value on the specified pin.
-   * @param[in] pin Pin number to read.
-   * @returns The read value normalized to [0,1]
+   * @returns The read value in volt.
    */
-  virtual double read(PinAnalogSensor pinNr) const = 0;
-  virtual double read(PinAnalogActuator pinNr) const = 0;
+  virtual double read() const = 0;
 };
 
 }  // namespace gl::hw

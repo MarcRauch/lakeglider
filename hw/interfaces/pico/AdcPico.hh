@@ -14,14 +14,18 @@ class AdcPico : public IAdc {
  public:
   /**
    * Initializes the ADC
+   * @param[in] pin The pin to be read
+   * @returns ADC object
    **/
-  AdcPico();
+  template <ConceptPinAnalog T>
+  AdcPico(T pin) : pinNr(static_cast<uint8_t>(pin)) {
+    adc_init();
+  };
 
-  double read(PinAnalogSensor pin) const override;
-  double read(PinAnalogActuator pin) const override;
+  double read() const override;
 
  private:
-  double read(uint8_t pin) const;
+  const uint8_t pinNr;
 };
 
 }  // namespace gl::hw

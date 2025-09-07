@@ -29,3 +29,21 @@ cc_library(
     ],
     visibility = ["//visibility:public"],
 )
+
+cc_library(
+    name = "uartInterface",
+    srcs = [],
+    hdrs = [
+        "IUart.hh",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+cc_library(
+    name = "gpioInterface",
+    srcs = [],
+    hdrs = [
+        "IGpio.hh",
+    ],
+    visibility = ["//visibility:public"],
+)

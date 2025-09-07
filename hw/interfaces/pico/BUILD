@@ -28,3 +28,47 @@ cc_library(
         "@pico-sdk//src/rp2_common/pico_stdlib:pico_stdlib",
     ],
 )
+
+cc_library(
+    name = "spiPico",
+    srcs = ["SpiPico.cc"],
+    hdrs = [
+        "SpiPico.hh",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//hw:pins",
+        "//hw/interfaces:spiInterface",
+        "@pico-sdk//src/rp2_common/hardware_spi",
+        "@pico-sdk//src/rp2_common/pico_stdlib:pico_stdlib",
+    ],
+)
+
+cc_library(
+    name = "uartPico",
+    srcs = ["UartPico.cc"],
+    hdrs = [
+        "UartPico.hh",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//hw:pins",
+        "//hw/interfaces:uartInterface",
+        "@pico-sdk//src/rp2_common/hardware_uart",
+        "@pico-sdk//src/rp2_common/pico_stdlib:pico_stdlib",
+    ],
+)
+
+cc_library(
+    name = "gpioPico",
+    srcs = ["GpioPico.cc"],
+    hdrs = [
+        "GpioPico.hh",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//hw:pins",
+        "//hw/interfaces:gpioInterface",
+        "@pico-sdk//src/rp2_common/pico_stdlib:pico_stdlib",
+    ],
+)
