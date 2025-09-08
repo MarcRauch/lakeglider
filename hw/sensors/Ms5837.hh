@@ -2,13 +2,13 @@
 #define GL_HW_SENSORS_MS5837_H
 
 #include <stdint.h>
+#include <optional>
 
 #include "com/msg/Depth.hh"
 #include "hw/interfaces/II2c.hh"
-#include "utils/time/ITimeProvider.hh"
+#include "utils/time/IClock.hh"
 
-namespace gl {
-namespace hw {
+namespace gl::hw {
 /**
 MS5837 Pressure sensor driver. As specified in
 https://www.te.com/commerce/DocumentDelivery/DDEController?Action=showdoc&DocId=Data+Sheet%7FMS5837-30BA%7FB1%7Fpdf%7FEnglish%7FENG_DS_MS5837-30BA_B1.pdf%7FCAT-BLPS0017
@@ -18,11 +18,11 @@ class Ms5837 {
   /**
    * Constructs a MS5837 pressure sensor object
    * @param[in] i2c Pointer to i2c interface used for communication with the sensor
-   * @param[in] timeProvider Pointer to generic time provider to be used
+   * @param[in] clock Pointer to generic time provider to be used
    * @param[in] i2cAddr I2C address of the sensor
    * @returns MS5837 pressure sensor object
    */
-  Ms5837(II2c* i2c, const utils::ITimeProvider* timeProvider, uint8_t i2cAddr = 0x76);
+  Ms5837(II2c* i2c, const utils::IClock* clock, uint8_t i2cAddr = 0x76);
 
   /**
    * Initialize the MS5837 sensor.
@@ -31,21 +31,23 @@ class Ms5837 {
   bool initialize();
 
   /**
-   * Get a pressure measurement (temperature, pressure and depth)
+   * Call this over and over. Starts conversions and if the data is ready, reads it.
    * @param[out] msg The depth message to fill
-   * @returns True if the read was successful
+   * @returns True if a measurement was read
    */
-  bool getReading(msg::Depth* msg) const;
+  bool loop(msg::Depth* msg);
 
  private:
   const uint8_t i2cAddr;
   II2c* i2c;
-  const utils::ITimeProvider* timeProvider;
+  const utils::IClock* clock;
 
   bool isInitialized = false;
   uint16_t c[8];
+  std::optional<utils::GlTime> convertionTime1;
+  std::optional<utils::GlTime> convertionTime2;
+  double d1;
 };
-}  // namespace hw
-}  // namespace gl
+}  // namespace gl::hw
 
 #endif  // GL_HW_SENSORS_MS5837_H

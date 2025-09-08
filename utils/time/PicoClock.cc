@@ -1,13 +1,13 @@
-#include "utils/time/PicoTimeProvider.hh"
+#include "utils/time/PicoClock.hh"
 
 #include <pico/stdlib.h>
 
 namespace gl::utils {
-GlTime PicoTimeProvider::now() const {
+GlTime PicoClock::now() const {
   return GlTime::usec(time_us_64());
 }
 
-void PicoTimeProvider::wait(GlTime duration) const {
+void PicoClock::wait(GlTime duration) const {
   sleep_us(duration.usec<uint64_t>());
 }
 }  // namespace gl::utils

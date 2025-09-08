@@ -44,8 +44,7 @@ bool readProm(uint8_t i2cAddr, gl::hw::II2c* i2c, uint8_t promAddr, uint16_t* re
 namespace gl {
 namespace hw {
 
-Ms5837::Ms5837(II2c* i2c, const utils::ITimeProvider* timeProvider, uint8_t i2cAddr)
-    : i2cAddr(i2cAddr), i2c(i2c), timeProvider(timeProvider) {
+Ms5837::Ms5837(II2c* i2c, const utils::IClock* clock, uint8_t i2cAddr) : i2cAddr(i2cAddr), i2c(i2c), clock(clock) {
   for (uint8_t i = 0; i < 10; i++) {
     if (initialize()) {
       isInitialized = true;
@@ -57,7 +56,7 @@ Ms5837::Ms5837(II2c* i2c, const utils::ITimeProvider* timeProvider, uint8_t i2cA
 bool Ms5837::initialize() {
   bool success = i2c->writeBytes(i2cAddr, &CMD_RESET, 1);
   // Wait for reset
-  timeProvider->wait(utils::GlTime::msec(100));
+  clock->wait(utils::GlTime::msec(100));
   for (uint8_t i = 0; i < 7; i++) {
     success &= readProm(i2cAddr, i2c, CMD_PROM + 2 * i, &c[i]);
   }
@@ -67,54 +66,72 @@ bool Ms5837::initialize() {
   return success && crcExpected == crc4(c);
 }
 
-bool Ms5837::getReading(msg::Depth* msg) const {
-  bool success = i2c->writeBytes(i2cAddr, &CMD_CONVERT_D1, 1);
-  // Wait for conversion to finish
-  // TODO: this is blocking and heavily limiting the max execution speed.
-  timeProvider->wait(utils::GlTime::msec(10));
-  uint8_t buf[3];
-  success &= i2c->readRegister(i2cAddr, CMD_ADC, 3, buf);
-  const uint32_t d1 = (static_cast<uint32_t>(buf[0]) << 16) | (static_cast<uint32_t>(buf[1]) << 8) | buf[2];
-  success = i2c->writeBytes(i2cAddr, &CMD_CONVERT_D2, 1);
-  // Wait for conversion to finish
-  timeProvider->wait(utils::GlTime::msec(10));
-  success &= i2c->readRegister(i2cAddr, CMD_ADC, 3, buf);
-  const uint32_t d2 = static_cast<uint32_t>(buf[0] << 16) | (static_cast<uint32_t>(buf[1]) << 8) | buf[2];
-  // A result is only 0 if the read failed
-  if (d1 == 0 || d2 == 0) {
-    success = false;
-  }
-
-  int32_t dT = static_cast<int32_t>(d2) - (static_cast<int32_t>(c[5]) << 8);
-  int32_t temp = 2000 + ((static_cast<int64_t>(dT) * static_cast<int64_t>(c[6])) >> 23);
-
-  int64_t off = (static_cast<int64_t>(c[2]) << 16) + ((static_cast<int64_t>(c[4]) * dT) >> 7);
-  int64_t sens = (static_cast<int64_t>(c[1]) << 15) + ((static_cast<int64_t>(c[3]) * dT) >> 8);
-
-  int64_t offi;
-  int64_t sensi;
-  // second order
-  if (temp / 100 < 20) {
-    dT = (3 * static_cast<int64_t>(dT) * static_cast<int64_t>(dT)) >> 33;
-    offi = (3 * static_cast<int64_t>(temp - 2000) * static_cast<int64_t>(temp - 2000)) >> 1;
-    sensi = (5 * static_cast<int64_t>(temp - 2000) * static_cast<int64_t>(temp - 2000)) >> 3;
-    if ((temp / 100) < -15) {
-      offi += 7 * (static_cast<int64_t>(temp) + 1500) * (static_cast<int64_t>(temp) + 1500);
-      sensi += 4 * (static_cast<int64_t>(temp) + 1500) * (static_cast<int64_t>(temp) + 1500);
+bool Ms5837::loop(msg::Depth* msg) {
+  utils::GlTime now = clock->now();
+  // Start first convertion
+  if (!convertionTime1.has_value() || !convertionTime2.has_value()) {
+    if (i2c->writeBytes(i2cAddr, &CMD_CONVERT_D1, 1)) {
+      convertionTime1 = now;
     }
-  } else {
-    dT = (static_cast<int64_t>(dT) * static_cast<int64_t>(dT)) >> 36;
-    offi = (static_cast<int64_t>(temp - 2000) * static_cast<int64_t>(temp - 2000)) >> 4;
-    sensi = 0;
+    return false;
   }
-  const int64_t off2 = off - offi;
-  const int64_t sens2 = sens - sensi;
-  msg->temperature_degc = (temp - dT) / 100.;
-  msg->pressure_pa = ((((static_cast<int64_t>(d1) * sens2) >> 21) - off2) >> 13) * 10.;
-  msg->depth_m = msg->pressure_pa / (9.81 * 997.);
-  msg->timestamp_us = timeProvider->now().usec<uint64_t>();
+  // If the first convertion is done read value and start the second one
+  if (convertionTime1.has_value()) {
+    if ((now - *convertionTime1).msec<double>() > 10) {
+      convertionTime1.reset();
+      uint8_t buf[3];
+      if (i2c->readRegister(i2cAddr, CMD_ADC, 3, buf)) {}
+      d1 = (static_cast<uint32_t>(buf[0]) << 16) | (static_cast<uint32_t>(buf[1]) << 8) | buf[2];
+      if (i2c->writeBytes(i2cAddr, &CMD_CONVERT_D2, 1)) {
+        convertionTime2 = now;
+      }
+    }
+    return false;
+  }
+  // If the second convertion is done, read value and return message
+  if (convertionTime2.has_value()) {
+    if ((now - *convertionTime2).msec<double>() > 10) {
+      convertionTime2.reset();
+      uint8_t buf[3];
+      if (i2c->readRegister(i2cAddr, CMD_ADC, 3, buf)) {}
+      const double d2 = (static_cast<uint32_t>(buf[0]) << 16) | (static_cast<uint32_t>(buf[1]) << 8) | buf[2];
 
-  return success;
+      // The result is only 0 if the read failed
+      if (d1 == 0 || d2 == 0) {
+        return false;
+      }
+      int32_t dT = static_cast<int32_t>(d2) - (static_cast<int32_t>(c[5]) << 8);
+      int32_t temp = 2000 + ((static_cast<int64_t>(dT) * static_cast<int64_t>(c[6])) >> 23);
+
+      int64_t off = (static_cast<int64_t>(c[2]) << 16) + ((static_cast<int64_t>(c[4]) * dT) >> 7);
+      int64_t sens = (static_cast<int64_t>(c[1]) << 15) + ((static_cast<int64_t>(c[3]) * dT) >> 8);
+
+      int64_t offi;
+      int64_t sensi;
+      // second order
+      if (temp / 100 < 20) {
+        dT = (3 * static_cast<int64_t>(dT) * static_cast<int64_t>(dT)) >> 33;
+        offi = (3 * static_cast<int64_t>(temp - 2000) * static_cast<int64_t>(temp - 2000)) >> 1;
+        sensi = (5 * static_cast<int64_t>(temp - 2000) * static_cast<int64_t>(temp - 2000)) >> 3;
+        if ((temp / 100) < -15) {
+          offi += 7 * (static_cast<int64_t>(temp) + 1500) * (static_cast<int64_t>(temp) + 1500);
+          sensi += 4 * (static_cast<int64_t>(temp) + 1500) * (static_cast<int64_t>(temp) + 1500);
+        }
+      } else {
+        dT = (static_cast<int64_t>(dT) * static_cast<int64_t>(dT)) >> 36;
+        offi = (static_cast<int64_t>(temp - 2000) * static_cast<int64_t>(temp - 2000)) >> 4;
+        sensi = 0;
+      }
+      const int64_t off2 = off - offi;
+      const int64_t sens2 = sens - sensi;
+      msg->temperature_degc = (temp - dT) / 100.;
+      msg->pressure_pa = ((((static_cast<int64_t>(d1) * sens2) >> 21) - off2) >> 13) * 10.;
+      msg->depth_m = msg->pressure_pa / (9.81 * 997.);
+      msg->timestamp_us = clock->now().usec<uint64_t>();
+      return true;
+    }
+  }
+  return false;
 }
 
 }  // namespace hw

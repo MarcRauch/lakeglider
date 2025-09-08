@@ -6,7 +6,7 @@
 #include "com/msg/Battery.hh"
 #include "hw/Pins.hh"
 #include "hw/interfaces/IAdc.hh"
-#include "utils/time/ITimeProvider.hh"
+#include "utils/time/IClock.hh"
 
 namespace gl::hw {
 
@@ -22,7 +22,7 @@ class Battery {
    * @param[in] numCells Number of cells of the LiPo battery.
    * @returns Corresponding battery monitor object.
    */
-  Battery(const IAdc* iAdc, const utils::ITimeProvider* timeProvider, PinAnalogSensor pin, uint8_t numCells = 4);
+  Battery(const IAdc* iAdc, const utils::IClock* clock, PinAnalogSensor pin, uint8_t numCells = 4);
 
   /**
    * Get battery charge information. This includes, total voltage, cell voltage and charge percentage.
@@ -33,7 +33,7 @@ class Battery {
 
  private:
   const IAdc* iAdc;
-  const utils::ITimeProvider* timeProvider;
+  const utils::IClock* clock;
   const PinAnalogSensor pin;
   const uint8_t numCells;
 

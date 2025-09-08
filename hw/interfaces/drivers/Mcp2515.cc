@@ -176,7 +176,7 @@ void Mcp2515::send(const std::array<uint8_t, 8>* data, uint8_t len) {
   modifyRegister(spi, freeTxCtrl, TXB_TXREQ_M, TXB_TXREQ_M);
 }
 
-uint8_t Mcp2515::read(std::array<uint8_t, 8>* data) {
+std::pair<uint8_t, uint16_t> Mcp2515::read(std::array<uint8_t, 8>* data) {
   spi->writeBytes(&CMD_READ_STATUS, 1);
   uint8_t status;
   spi->readBytes(1, &status);
@@ -184,22 +184,22 @@ uint8_t Mcp2515::read(std::array<uint8_t, 8>* data) {
   const auto readCanMsg = [&](uint8_t sidhAddr, uint8_t* data) {
     uint8_t idData[4];
     readRegisters(spi, sidhAddr, idData, 4);
-    const uint8_t id = (idData[SIDH] << 3) + (idData[SIDL] >> 5);
+    const uint16_t id = (idData[SIDH] << 3) + (idData[SIDL] >> 5);
     const uint8_t ctrl = readRegister(spi, sidhAddr - 1);
     const uint8_t numBytes = readRegister(spi, sidhAddr + 4) & DLC_MASK;
     readRegisters(spi, sidhAddr + 5, data, numBytes);
-    return numBytes;
+    return std::make_pair(numBytes, id);
   };
 
-  int8_t msgLen = -1;
+  std::pair<uint8_t, uint16_t> ret = {0, 0};
   if (status & STAT_RX0IF) {
-    msgLen = readCanMsg(RXB0SIDH, data->data());
+    ret = readCanMsg(RXB0SIDH, data->data());
     modifyRegister(spi, CANINTF, RX0IF, 0);
   } else if (status & STAT_RX1IF) {
-    msgLen = readCanMsg(RXB1SIDH, data->data());
+    ret = readCanMsg(RXB1SIDH, data->data());
     modifyRegister(spi, CANINTF, RX1IF, 0);
   }
-  return msgLen;
+  return ret;
 }
 
 }  // namespace gl::hw

@@ -9,7 +9,7 @@
 #include "hw/interfaces/pico/I2cPico.hh"
 #include "hw/sensors/Battery.hh"
 #include "hw/sensors/Ms5837.hh"
-#include "utils/time/PicoTimeProvider.hh"
+#include "utils/time/PicoClock.hh"
 
 void testBattery(gl::hw::Battery& b) {
   printf("Starting battery test\n");
@@ -25,7 +25,9 @@ void testBattery(gl::hw::Battery& b) {
 void testDepth(gl::hw::Ms5837& depth) {
   printf("Starting depth test\n");
   gl::msg::Depth msg;
-  depth.getReading(&msg);
+  while (!depth.loop(&msg)) {
+    sleep_ms(10);
+  }
   printf("Depth: %fm\n", msg.depth_m);
   printf("Temp: %f°C\n", msg.temperature_degc);
   printf("Pressure: %fpa\n", msg.pressure_pa);
@@ -61,11 +63,11 @@ int main() {
   gl::hw::AdcPico adcPico;
   i2c_inst_t* i2cInst = i2c_get_instance(gl::hw::SENSOR_I2C_INSTANCE_NR);
   gl::hw::I2cPico i2cPico(i2cInst, gl::hw::PinGpioSensor::I2C_SCL, gl::hw::PinGpioSensor::I2C_SDA);
-  gl::utils::PicoTimeProvider timeProvider;
+  gl::utils::PicoClock clock;
 
-  gl::hw::Battery bat1(&adcPico, &timeProvider, gl::hw::PinAnalogSensor::BATTERY1);
-  gl::hw::Battery bat2(&adcPico, &timeProvider, gl::hw::PinAnalogSensor::BATTERY2);
-  gl::hw::Ms5837 depth(&i2cPico, &timeProvider);
+  gl::hw::Battery bat1(&adcPico, &clock, gl::hw::PinAnalogSensor::BATTERY1);
+  gl::hw::Battery bat2(&adcPico, &clock, gl::hw::PinAnalogSensor::BATTERY2);
+  gl::hw::Ms5837 depth(&i2cPico, &clock);
 
   uint8_t i = 0;
   for (; !depth.initialize() && i < 10; i++) {

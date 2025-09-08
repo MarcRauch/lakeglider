@@ -33,9 +33,9 @@ class Mcp2515 {
 
   /**
    * @param[in] data Array to save data to
-   * @returns Number of bytes read
+   * @returns Number of bytes read and the id of the sender
    */
-  uint8_t read(std::array<uint8_t, 8>* data);
+  std::pair<uint8_t, uint16_t> read(std::array<uint8_t, 8>* data);
 
  private:
   ISpi* spi;

@@ -1,11 +1,11 @@
-#ifndef GL_UTILS_TIME_ITIMEPROVIDER_H_
-#define GL_UTILS_TIME_ITIMEPROVIDER_H_
+#ifndef GL_UTILS_TIME_ICLOCK_H_
+#define GL_UTILS_TIME_ICLOCK_H_
 
 #include "utils/time/GlTime.hh"
 
 namespace gl::utils {
 
-class ITimeProvider {
+class IClock {
  public:
   /**
    * Gets the current system time
@@ -21,4 +21,4 @@ class ITimeProvider {
 };
 }  // namespace gl::utils
 
-#endif  // GL_UTILS_TIME_ITIMEPROVIDER_H_
+#endif  // GL_UTILS_TIME_ICLOCK_H_

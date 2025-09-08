@@ -5,15 +5,15 @@ cc_library(
     srcs = [],
     hdrs = [
         "GlTime.hh",
-        "ITimeProvider.hh",
+        "IClock.hh",
     ],
     visibility = ["//visibility:public"],
 )
 
 cc_library(
     name = "timePico",
-    srcs = ["PicoTimeProvider.cc"],
-    hdrs = ["PicoTimeProvider.hh"],
+    srcs = ["PicoClock.cc"],
+    hdrs = ["PicoClock.hh"],
     visibility = ["//visibility:public"],
     deps = [
         ":timeInterface",
@@ -23,8 +23,8 @@ cc_library(
 
 cc_library(
     name = "timeLinux",
-    srcs = ["LinuxTimeProvider.cc"],
-    hdrs = ["LinuxTimeProvider.hh"],
+    srcs = ["LinuxClock.cc"],
+    hdrs = ["LinuxClock.hh"],
     visibility = ["//visibility:public"],
     deps = [":timeInterface"],
 )
