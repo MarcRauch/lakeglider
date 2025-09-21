@@ -60,13 +60,14 @@ int main() {
   printf("Starting...\n");
 
   // init HW
-  gl::hw::AdcPico adcPico;
+  gl::hw::AdcPico adcBat1(gl::hw::PinAnalogSensor::BATTERY1);
+  gl::hw::AdcPico adcBat2(gl::hw::PinAnalogSensor::BATTERY2);
   i2c_inst_t* i2cInst = i2c_get_instance(gl::hw::SENSOR_I2C_INSTANCE_NR);
   gl::hw::I2cPico i2cPico(i2cInst, gl::hw::PinGpioSensor::I2C_SCL, gl::hw::PinGpioSensor::I2C_SDA);
   gl::utils::PicoClock clock;
 
-  gl::hw::Battery bat1(&adcPico, &clock, gl::hw::PinAnalogSensor::BATTERY1);
-  gl::hw::Battery bat2(&adcPico, &clock, gl::hw::PinAnalogSensor::BATTERY2);
+  gl::hw::Battery bat1(&adcBat1, &clock);
+  gl::hw::Battery bat2(&adcBat2, &clock);
   gl::hw::Ms5837 depth(&i2cPico, &clock);
 
   uint8_t i = 0;

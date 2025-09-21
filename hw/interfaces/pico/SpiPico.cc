@@ -5,13 +5,15 @@
 namespace gl::hw {
 bool SpiPico::readBytes(uint8_t numBytes, uint8_t* dest) {
   select();
-  spi_write_blocking(spiInst, dest, numBytes);
+  const bool success = spi_read_blocking(spiInst, 0x00, dest, numBytes) == numBytes;
   deselect();
+  return success;
 }
 bool SpiPico::writeBytes(const uint8_t* data, uint8_t numBytes) {
   select();
-  spi_write_blocking(spiInst, data, numBytes);
+  const bool success = spi_write_blocking(spiInst, data, numBytes) == numBytes;
   deselect();
+  return success;
 }
 
 void SpiPico::setInitialized() {
@@ -27,10 +29,10 @@ void SpiPico::select() {
 }
 
 void SpiPico::deselect() {
-  gpio_put(pinCs, 1);
   __asm volatile(
       "nop\n"
       "nop\n"
       "nop\n");
+  gpio_put(pinCs, 1);
 }
 }  // namespace gl::hw

@@ -53,6 +53,7 @@ enum class CanId : uint8_t { COMPUTE_BOARD = 0, SENSOR_BOARD = 1, ACTUATOR_BOARD
 // Interface numbers
 const uint8_t SENSOR_I2C_INSTANCE_NR = 0;
 const uint8_t SENSOR_SPI_INSTANCE_NR = 0;
+const uint8_t ACTUATOR_SPI_INSTANCE_NR = 0;
 const uint8_t ACTUATOR_UART_INSTANCE_NR = 0;
 
 template <typename T>

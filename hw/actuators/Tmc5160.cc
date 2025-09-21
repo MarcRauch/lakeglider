@@ -216,7 +216,7 @@ union PwmConf {
 
 // Helper functions
 
-void currentLimits(const gl::hw::Stepper::Config& config, IholdIrun* iholdIrun, GlobalScaler* globalScaler) {
+void currentLimits(const gl::hw::Tmc5160::Config& config, IholdIrun* iholdIrun, GlobalScaler* globalScaler) {
   constexpr double vFs_v = 0.325;
   constexpr double rSens_ohm = 0.075;
 
@@ -257,8 +257,7 @@ uint32_t calculateAcceleration(double acc_radps2) {
 namespace gl {
 namespace hw {
 
-Stepper::Stepper(ISpi* spi, utils::IClock* clock, const Config& config) : config(config), spi(spi), clock(clock) {
-
+Tmc5160::Tmc5160(ISpi* spi, utils::IClock* clock, const Config& config) : config(config), spi(spi), clock(clock) {
   // Initialize device
   writeRegister(Register::GSTAT, Gstat{.reset = 1, .uvCp = 1});
   writeRegister(Register::GCONF, Gconf{.enPwmMode = 1, .shaft = config.invertDirection});
@@ -282,7 +281,7 @@ Stepper::Stepper(ISpi* spi, utils::IClock* clock, const Config& config) : config
   clock->wait(utils::GlTime::sec(2));
 }
 
-void Stepper::home() {
+void Tmc5160::home() {
   writeRegister(Register::RAMPMODE, Rampmode{.bytes = 2});
   while (!readRegister<RampStat>(Register::RAMP_STAT).statusStopL) {
     clock->wait(utils::GlTime::msec(100));
@@ -292,7 +291,7 @@ void Stepper::home() {
   writeRegister(Register::RAMPMODE, Rampmode{.rampmode = 0});
 }
 
-void Stepper::moveTo(double pos) {
+void Tmc5160::moveTo(double pos) {
   pos = std::max(std::min(pos, 1.), 0.);
   const double maxMicroSteps = config.maxRotations * STEPS_PER_REVOLUTION * MICRO_STEPS;
   writeRegister(Register::XTARGET, Xtarget{.xTarget = static_cast<uint32_t>(pos * maxMicroSteps)});

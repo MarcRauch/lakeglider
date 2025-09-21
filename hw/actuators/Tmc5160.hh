@@ -12,15 +12,15 @@
 
 namespace gl::hw {
 
-namespace stepperDetails {
+namespace tmc5160Details {
 // Requires a valid register (contains a uint32_t bytes field)
 template <typename T>
 concept ConceptRegister = requires(T t) {
   { t.bytes } -> std::same_as<uint32_t&>;
 };
-}  // namespace stepperDetails
+}  // namespace tmc5160Details
 
-class Stepper {
+class Tmc5160 {
  public:
   struct Config {
     double iRun_a = 0.2;
@@ -32,11 +32,11 @@ class Stepper {
   };
 
   /**
-   * Create a Stepper object with config 
-   * @param[in] config Stepper config to be used
-   * @returns Stepper object
+   * Create a Tmc5160 object with config 
+   * @param[in] config Tmc5160 config to be used
+   * @returns Tmc5160 object
    */
-  Stepper(ISpi* spi, utils::IClock* clock, const Config& config);
+  Tmc5160(ISpi* spi, utils::IClock* clock, const Config& config);
 
   /**
    * Move in the negative direction until a limit switch is hit. Set the zero position and move to the middle of the 
@@ -78,7 +78,7 @@ class Stepper {
    * @param[in] addr Address of register to be updated
    * @param[in] val Value to be written to the register
    */
-  template <stepperDetails::ConceptRegister T>
+  template <tmc5160Details::ConceptRegister T>
   void writeRegister(Register addr, T val) {
     const uint32_t bytes = val.bytes;
     uint8_t bufSend[5];
@@ -95,7 +95,7 @@ class Stepper {
    * @param[in] addr Address of register to be read
    * @returns Value in this register.
    */
-  template <stepperDetails::ConceptRegister T>
+  template <tmc5160Details::ConceptRegister T>
   T readRegister(Register addr) {
     uint8_t bufSend[5];
     uint8_t bufRecv[5];

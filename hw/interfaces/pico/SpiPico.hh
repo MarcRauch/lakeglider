@@ -4,6 +4,7 @@
 #include <hardware/gpio.h>
 #include <hardware/spi.h>
 #include <stdint.h>
+#include <vector>
 
 #include <type_traits>
 
@@ -27,11 +28,12 @@ class SpiPico : public ISpi {
    * @returns SPI object
    */
   template <ConceptPinGpio T>
-  SpiPico(spi_inst_t* spiInst, T pinMiso, T pinMosi, T pinSck, T pinCs) : pinCs(static_cast<uint8_t>(pinCs)) {
+  SpiPico(spi_inst_t* spiInst, T pinMiso, T pinMosi, T pinSck, T pinCs)
+      : spiInst(spiInst), pinCs(static_cast<uint8_t>(pinCs)) {
     if (!isInitialized) {
-      spi_init(spiInst, 1000000);
+      spi_init(spiInst, 500 * 1000);
       gpio_set_function(static_cast<uint8_t>(pinMiso), GPIO_FUNC_SPI);
-      gpio_set_function(static_cast<uint8_t>(pinMiso), GPIO_FUNC_SPI);
+      gpio_set_function(static_cast<uint8_t>(pinMosi), GPIO_FUNC_SPI);
       gpio_set_function(static_cast<uint8_t>(pinSck), GPIO_FUNC_SPI);
     }
     gpio_init(this->pinCs);
