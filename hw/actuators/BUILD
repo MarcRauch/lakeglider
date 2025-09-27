@@ -3,12 +3,14 @@ load("@rules_cc//cc:defs.bzl", "cc_library")
 cc_library(
     name = "actuators",
     srcs = [
-        "Pump.cc",
+        "EqiUartMg1.cc",
         "Tmc5160.cc",
+        "Valve.cc",
     ],
     hdrs = [
-        "Pump.hh",
+        "EqiUartMg1.hh",
         "Tmc5160.hh",
+        "Valve.hh",
     ],
     visibility = ["//visibility:public"],
     deps = [

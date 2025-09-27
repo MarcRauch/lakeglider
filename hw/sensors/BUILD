@@ -5,10 +5,12 @@ cc_library(
     srcs = [
         "Battery.cc",
         "Ms5837.cc",
+        "Potentiometer.cc",
     ],
     hdrs = [
         "Battery.hh",
         "Ms5837.hh",
+        "Potentiometer.hh",
     ],
     visibility = ["//visibility:public"],
     deps = [
@@ -16,6 +18,6 @@ cc_library(
         "//hw:pins",
         "//hw/interfaces:adcInterface",
         "//hw/interfaces:i2cInterface",
-        "//utils/time:timeInterface"
+        "//utils/time:timeInterface",
     ],
 )

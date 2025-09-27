@@ -22,7 +22,6 @@ class GpioPico : public IGpio {
    */
   template <ConceptPinGpio T>
   GpioPico(T pin, bool isOutput) : pinNr(static_cast<uint8_t>(pin)) {
-    gpio_init();
     gpio_init(pinNr);
     gpio_set_dir(pinNr, isOutput);
   }

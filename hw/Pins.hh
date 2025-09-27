@@ -38,8 +38,8 @@ enum class PinGpioActuator : uint8_t {
   SPI_CS_CAN = 17,
   SPI_SCK = 18,
   SPI_MOSI = 19,
-  SPI_CS_MOT1 = 20,
-  SPI_CS_MOT2 = 21,
+  SPI_CS_MOT2 = 20,
+  SPI_CS_MOT1 = 21,
   VALVE = 28,
 };
 

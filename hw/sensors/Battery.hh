@@ -18,11 +18,10 @@ class Battery {
   /**
    * Constructs a battery monitor object
    * @param[in] iAdc ADC interface used to read the battery voltage.
-   * @param[in] pin Analog pin number of the battery input.
    * @param[in] numCells Number of cells of the LiPo battery.
    * @returns Corresponding battery monitor object.
    */
-  Battery(const IAdc* iAdc, const utils::IClock* clock, PinAnalogSensor pin, uint8_t numCells = 4);
+  Battery(const IAdc* iAdc, const utils::IClock* clock, uint8_t numCells = 4);
 
   /**
    * Get battery charge information. This includes, total voltage, cell voltage and charge percentage.
@@ -34,7 +33,6 @@ class Battery {
  private:
   const IAdc* iAdc;
   const utils::IClock* clock;
-  const PinAnalogSensor pin;
   const uint8_t numCells;
 
   float maxVoltage_v;

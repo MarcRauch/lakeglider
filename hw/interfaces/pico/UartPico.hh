@@ -3,6 +3,7 @@
 
 #include <hardware/uart.h>
 #include <stdint.h>
+#include "pico/stdlib.h"
 
 #include "hw/Pins.hh"
 #include "hw/interfaces/IUart.hh"
@@ -25,8 +26,8 @@ class UartPico : public IUart {
   template <ConceptPinGpio T>
   UartPico(uart_inst_t* uartInst, T pinTx, T pinRx, uint32_t baudRate) : uartInst(uartInst) {
     uart_init(uartInst, baudRate);
-    gpio_set_function(static_cast<pinTx>, GPIO_FUNC_UART);
-    gpio_set_function(static_cast<pinRx>, GPIO_FUNC_UART);
+    gpio_set_function(static_cast<uint8_t>(pinTx), GPIO_FUNC_UART);
+    gpio_set_function(static_cast<uint8_t>(pinRx), GPIO_FUNC_UART);
   }
 
   bool readBytes(uint32_t numBytes, uint8_t* dest) override;

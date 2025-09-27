@@ -1,6 +1,7 @@
 #ifndef GL_HW_INTERFACES_PICO_ADCPICO_H_
 #define GL_HW_INTERFACES_PICO_ADCPICO_H_
 
+#include <hardware/adc.h>
 #include <stdint.h>
 
 #include "hw/interfaces/IAdc.hh"

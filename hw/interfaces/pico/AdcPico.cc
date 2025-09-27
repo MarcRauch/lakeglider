@@ -1,7 +1,5 @@
 #include "hw/interfaces/pico/AdcPico.hh"
 
-#include <hardware/adc.h>
-
 namespace gl::hw {
 
 double AdcPico::read() const {

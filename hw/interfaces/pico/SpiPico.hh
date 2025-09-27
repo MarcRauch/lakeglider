@@ -4,7 +4,6 @@
 #include <hardware/gpio.h>
 #include <hardware/spi.h>
 #include <stdint.h>
-#include <vector>
 
 #include <type_traits>
 

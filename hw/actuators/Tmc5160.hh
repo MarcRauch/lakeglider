@@ -24,10 +24,10 @@ class Tmc5160 {
  public:
   struct Config {
     double iRun_a = 0.2;
-    double iHoldFactor = 0.3;
+    double iHoldFactor = 0.1;
     bool invertDirection = false;
     double vel_radps = 6.;
-    double acc_radps2 = 2.;
+    double acc_radps2 = 1.5;
     double maxRotations = 2.;
   };
 

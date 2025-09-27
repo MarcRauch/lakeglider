@@ -18,7 +18,7 @@
 
 int main() {
   gl::utils::PicoClock clock;
-  stdio_init_all();
+  stdio_usb_init();
   gpio_init(static_cast<uint8_t>(gl::hw::PinGpioActuator::LED_RED));
   gpio_init(static_cast<uint8_t>(gl::hw::PinGpioActuator::LED_GREEEN));
   gpio_set_dir(static_cast<uint8_t>(gl::hw::PinGpioActuator::LED_RED), GPIO_OUT);
@@ -39,9 +39,10 @@ int main() {
                           gl::hw::PinGpioActuator::SPI_SCK, gl::hw::PinGpioActuator::SPI_CS_MOT2);
   gl::hw::GpioPico gpioValve(gl::hw::PinGpioActuator::VALVE, true);
   gl::hw::Valve valve(&gpioValve);
-  gl::hw::Tmc5160::Config config;
-  gl::hw::Tmc5160 motor1(&spiMot1, &clock, config);
-  gl::hw::Tmc5160 motor2(&spiMot2, &clock, config);
+  gl::hw::Tmc5160::Config config1 = {.maxRotations = 15.};
+  gl::hw::Tmc5160 motor1(&spiMot1, &clock, config1);
+  gl::hw::Tmc5160::Config config2 = {.maxRotations = 0.2};
+  gl::hw::Tmc5160 motor2(&spiMot2, &clock, config2);
   gl::hw::Potentiometer potentiometer(&adcPot, 1., 2.);
   gl::hw::EqiUartMg1 pump(&uartPump);
 
@@ -87,15 +88,16 @@ int main() {
 
       } else if (motorNr == 2) {
         if (command[1] == "home") {
-          // motor2.home();
+          motor2.home();
           std::cout << "Homing motor " << motorNr << std::endl;
+        } else {
+          const double pos = std::stod(command[1]);
+          motor2.moveTo(pos);
+          std::cout << "Set motor " << motorNr << " position to " << pos << std::endl;
         }
-        const double pos = std::stod(command[1]);
-        // motor2.moveTo(pos);
-        std::cout << "Set motor " << motorNr << " position to " << pos << std::endl;
       }
     } else if (command[0] == "valve") {
-      if (command.size() != 2 || (command[1] != "open" || command[1] != "close")) {
+      if (command.size() != 2 || (command[1] != "open" && command[1] != "close")) {
         std::cout << "Proper use: valve [open, close]" << std::endl;
         continue;
       }
@@ -106,12 +108,12 @@ int main() {
       }
       std::cout << "Performed " << command[1] << " of the Valve" << std::endl;
     } else if (command[0] == "pump") {
-      if (command.size() < 2 || (command[1] != "on" || command[1] != "off")) {
-        std::cout << "Proper use: valve [on, off]" << std::endl;
+      if (command.size() < 2 || (command[1] != "start" && command[1] != "stop")) {
+        std::cout << "Proper use: pump [start, stop]" << std::endl;
         continue;
       }
-      if (command[1] == "on") {
-        if (command.size() != 4 || (command[3] != "in" || command[3] != "out")) {
+      if (command[1] == "start") {
+        if (command.size() != 4 || (command[3] != "in" && command[3] != "out")) {
           std::cout << "Proper use: pump [start, stop] speed [in, out]" << std::endl;
           continue;
         }
@@ -124,7 +126,7 @@ int main() {
         std::cout << "Starting pump with speed " << speed << std::endl;
         pump.setSpeed(speed);
         pump.start();
-      } else if (command[1] == "off") {
+      } else if (command[1] == "stop") {
         pump.stop();
         std::cout << "Stopped pump" << std::endl;
       }

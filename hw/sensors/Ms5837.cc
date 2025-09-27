@@ -69,7 +69,7 @@ bool Ms5837::initialize() {
 bool Ms5837::loop(msg::Depth* msg) {
   utils::GlTime now = clock->now();
   // Start first convertion
-  if (!convertionTime1.has_value() || !convertionTime2.has_value()) {
+  if (!convertionTime1.has_value() && !convertionTime2.has_value()) {
     if (i2c->writeBytes(i2cAddr, &CMD_CONVERT_D1, 1)) {
       convertionTime1 = now;
     }
