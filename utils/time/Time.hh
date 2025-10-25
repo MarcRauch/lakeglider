@@ -1,5 +1,5 @@
-#ifndef GL_UTILS_TIME_GLTIME_H_
-#define GL_UTILS_TIME_GLTIME_H_
+#ifndef GL_UTILS_TIME_Time_H_
+#define GL_UTILS_TIME_Time_H_
 
 #include <stdint.h>
 
@@ -8,43 +8,43 @@ namespace gl::utils {
 /**
 Saving time durations and timestamps. Saves at a microsecond resolution
 */
-class GlTime {
+class Time {
  public:
   /**
-   * Constructs a GlTime object.
+   * Constructs a Time object.
    * @param[in] time_us Time to be set in micro seconds
-   * @returns GlTime object containing the specified time
+   * @returns Time object containing the specified time
    */
-  GlTime(uint64_t time_us = 0) : time_us(time_us){};
+  Time(uint64_t time_us = 0) : time_us(time_us){};
 
   /**
-   * Constructs a GlTime from a given time in seconds of any type
+   * Constructs a Time from a given time in seconds of any type
    * @param[in] time_s Time to be set in seconds
-   * @returns GlTime object containing the specified time
+   * @returns Time object containing the specified time
    */
   template <typename T>
-  static GlTime sec(T time_s) {
-    return GlTime(static_cast<uint32_t>(time_s * 1e6));
+  static Time sec(T time_s) {
+    return Time(static_cast<uint32_t>(time_s * 1e6));
   };
 
   /**
-   * Constructs a GlTime from a given time in milliseconds of any type
+   * Constructs a Time from a given time in milliseconds of any type
    * @param[in] time_ms Time to be set in milliseconds
-   * @returns GlTime object containing the specified time
+   * @returns Time object containing the specified time
    */
   template <typename T>
-  static GlTime msec(T time_ms) {
-    return GlTime(static_cast<uint32_t>(time_ms * 1e3));
+  static Time msec(T time_ms) {
+    return Time(static_cast<uint32_t>(time_ms * 1e3));
   };
 
   /**
-   * Constructs a GlTime from a given time in microseconds of any type
+   * Constructs a Time from a given time in microseconds of any type
    * @param[in] time_us Time to be set in microseconds
-   * @returns GlTime object containing the specified time
+   * @returns Time object containing the specified time
    */
   template <typename T>
-  static GlTime usec(T time_us) {
-    return GlTime(static_cast<uint32_t>(time_us));
+  static Time usec(T time_us) {
+    return Time(static_cast<uint32_t>(time_us));
   };
 
   /**
@@ -79,28 +79,28 @@ class GlTime {
    * @param[in] rhs timestamp to be added
    * @returns sum of the two timestamps
    */
-  GlTime operator+(const GlTime& rhs) { return GlTime::usec(time_us + rhs.usec<uint64_t>()); }
+  Time operator+(const Time& rhs) { return Time::usec(time_us + rhs.usec<uint64_t>()); }
 
   /**
    * Overloads the - operator
    * @param[in] rhs timestamp to be subtracted
    * @returns difference of the two timestamps
    */
-  GlTime operator-(const GlTime& rhs) { return GlTime::usec(time_us - rhs.usec<uint64_t>()); }
+  Time operator-(const Time& rhs) { return Time::usec(time_us - rhs.usec<uint64_t>()); }
 
   /**
    * Overloads the < operator
    * @param[in] rhs timestamp to be compared
    * @returns true if the timestamp to be compared is larger
    */
-  bool operator<(const GlTime& rhs) { return time_us < rhs.usec<uint64_t>(); }
+  bool operator<(const Time& rhs) { return time_us < rhs.usec<uint64_t>(); }
 
   /**
    * Overloads the += operator
    * @param[in] rhs the time to be added
    * @returns the value with rhs added to it
    */
-  GlTime& operator+=(const GlTime& rhs) {
+  Time& operator+=(const Time& rhs) {
     this->time_us += rhs.usec<int64_t>();
     return *this;
   }
@@ -110,4 +110,4 @@ class GlTime {
 };
 }  // namespace gl::time
 
-#endif  // GL_UTILS_TIME_GLTIME_H_
+#endif  // GL_UTILS_TIME_Time_H_

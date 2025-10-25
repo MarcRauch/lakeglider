@@ -20,6 +20,14 @@ void SpiPico::setInitialized() {
   isInitialized = true;
 }
 
+bool SpiPico::writeReadBytes(const uint8_t* dataWrite, uint8_t* dataRead, uint32_t numWrite, uint32_t numRead) {
+  select();
+  bool success = spi_write_blocking(spiInst, dataWrite, numWrite) == numWrite;
+  success &= spi_read_blocking(spiInst, 0x00, dataRead, numRead) == numRead;
+  deselect();
+  return success;
+}
+
 void SpiPico::select() {
   gpio_put(pinCs, 0);
   __asm volatile(

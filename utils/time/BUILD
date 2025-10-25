@@ -4,7 +4,7 @@ cc_library(
     name = "timeInterface",
     srcs = [],
     hdrs = [
-        "GlTime.hh",
+        "Time.hh",
         "IClock.hh",
     ],
     visibility = ["//visibility:public"],

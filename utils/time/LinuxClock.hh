@@ -1,16 +1,16 @@
 #ifndef GL_UTILS_TIME_LINUXCLOCK_H_
 #define GL_UTILS_TIME_LINUXCLOCK_H_
 
-#include "utils/time/GlTime.hh"
+#include "utils/time/Time.hh"
 #include "utils/time/IClock.hh"
 
 namespace gl::utils {
 
 class LinuxClock : public IClock {
  public:
-  GlTime now() const override;
+  Time now() const override;
 
-  void wait(GlTime duration) const override;
+  void wait(Time duration) const override;
 };
 }  // namespace gl::utils
 

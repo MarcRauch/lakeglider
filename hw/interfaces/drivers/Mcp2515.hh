@@ -6,6 +6,7 @@
 
 #include "hw/Pins.hh"
 #include "hw/interfaces/ISpi.hh"
+#include "utils/time/IClock.hh"
 
 namespace gl::hw {
 /**
@@ -18,18 +19,19 @@ class Mcp2515 {
   /**
    * Create a Mcp2515 can controller object
    * @param[in] spi Spi interface connected to the Mcp2515
-   * @param[in] csPin Chip select connection to the Mcp2515
+   * @param[in] clock Clock interface to introduce delays
    * @param[in] subscriptions Vector of canids to receive
    * @returns Mcp2515 object
    */
-  Mcp2515(ISpi* spi, PinGpioSensor csPin, CanId canId, std::vector<CanId> subscriptions);
+  Mcp2515(ISpi* spi, utils::IClock* clock, CanId canId, std::vector<CanId> subscriptions);
 
   /**
    * Send a dataframe
    * @param[in] data Dataframe to send
    * @param[in] len Number of bytes to send
+   * @returns True if send was succesful
    */
-  void send(const std::array<uint8_t, 8>* data, uint8_t len);
+  bool send(const std::array<uint8_t, 8>& data, uint8_t len);
 
   /**
    * @param[in] data Array to save data to
@@ -39,7 +41,8 @@ class Mcp2515 {
 
  private:
   ISpi* spi;
-  const PinGpioSensor csPin;
+  utils::IClock* clock;
+
   const CanId canId;
   const std::vector<CanId> subscriptions;
 };

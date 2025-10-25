@@ -44,8 +44,8 @@ class Ms5837 {
 
   bool isInitialized = false;
   uint16_t c[8];
-  std::optional<utils::GlTime> convertionTime1;
-  std::optional<utils::GlTime> convertionTime2;
+  std::optional<utils::Time> convertionTime1;
+  std::optional<utils::Time> convertionTime2;
   double d1;
 };
 }  // namespace gl::hw

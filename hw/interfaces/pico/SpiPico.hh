@@ -41,6 +41,7 @@ class SpiPico : public ISpi {
     setInitialized();
   }
 
+  bool writeReadBytes(const uint8_t* dataWrite, uint8_t* dataRead, uint32_t numWrite, uint32_t numRead) override;
   bool readBytes(uint8_t numBytes, uint8_t* dest) override;
   bool writeBytes(const uint8_t* data, uint8_t numBytes) override;
 

@@ -56,7 +56,7 @@ Ms5837::Ms5837(II2c* i2c, const utils::IClock* clock, uint8_t i2cAddr) : i2cAddr
 bool Ms5837::initialize() {
   bool success = i2c->writeBytes(i2cAddr, &CMD_RESET, 1);
   // Wait for reset
-  clock->wait(utils::GlTime::msec(100));
+  clock->wait(utils::Time::msec(100));
   for (uint8_t i = 0; i < 7; i++) {
     success &= readProm(i2cAddr, i2c, CMD_PROM + 2 * i, &c[i]);
   }
@@ -67,7 +67,7 @@ bool Ms5837::initialize() {
 }
 
 bool Ms5837::loop(msg::Depth* msg) {
-  utils::GlTime now = clock->now();
+  utils::Time now = clock->now();
   // Start first convertion
   if (!convertionTime1.has_value() && !convertionTime2.has_value()) {
     if (i2c->writeBytes(i2cAddr, &CMD_CONVERT_D1, 1)) {

@@ -25,6 +25,16 @@ class ISpi {
    * @returns True if the write was successful
    */
   virtual bool writeBytes(const uint8_t* data, uint8_t numBytes) = 0;
+
+  /**
+   * Send a buffer of and immediately read into another buffer
+   * @param[in] dataWrite Data to write
+   * @param[in] dataRead Buffer to read data into
+   * @param[in] numWrite Number of bytes to write
+   * @param[in] numRead Number of bytes to read
+   * @returns True if the write was successful
+   */
+  virtual bool writeReadBytes(const uint8_t* dataWrite, uint8_t* dataRead, uint32_t numWrite, uint32_t numRead) = 0;
 };
 
 }  // namespace gl::hw
