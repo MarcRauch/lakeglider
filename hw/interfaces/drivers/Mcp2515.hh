@@ -2,6 +2,7 @@
 #define GL_HW_INTERFACES_DRIVERS_MCP2515_H_
 
 #include <array>
+#include <memory>
 #include <vector>
 
 #include "hw/Pins.hh"
@@ -23,7 +24,8 @@ class Mcp2515 {
    * @param[in] subscriptions Vector of canids to receive
    * @returns Mcp2515 object
    */
-  Mcp2515(ISpi* spi, utils::IClock* clock, CanId canId, std::vector<CanId> subscriptions);
+  Mcp2515(std::shared_ptr<ISpi> spi, std::shared_ptr<utils::IClock> clock, CanId canId,
+          const std::vector<CanId>& subscriptions);
 
   /**
    * Send a dataframe
@@ -37,11 +39,18 @@ class Mcp2515 {
    * @param[in] data Array to save data to
    * @returns Number of bytes read and the id of the sender
    */
-  std::pair<uint8_t, uint16_t> read(std::array<uint8_t, 8>* data);
+  std::pair<uint8_t, CanId> read(std::array<uint8_t, 8>* data);
 
  private:
-  ISpi* spi;
-  utils::IClock* clock;
+  uint8_t readRegister(uint8_t addr);
+  void readRegisters(uint8_t addr, uint8_t* data, uint8_t len);
+  void writeRegister(uint8_t addr, uint8_t val);
+  void writeRegisters(uint8_t addr, const uint8_t* data, uint8_t len);
+  void modifyRegister(uint8_t addr, uint8_t mask, uint8_t val);
+  void setMode(const uint8_t mode);
+
+  std::shared_ptr<ISpi> spi;
+  std::shared_ptr<utils::IClock> clock;
 
   const CanId canId;
   const std::vector<CanId> subscriptions;

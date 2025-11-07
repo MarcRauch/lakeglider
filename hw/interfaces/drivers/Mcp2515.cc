@@ -64,24 +64,27 @@ constexpr uint8_t SIDH = 0;
 constexpr uint8_t SIDL = 1;
 constexpr uint8_t DLC_MASK = 0x0F;
 
-uint8_t readRegister(gl::hw::ISpi* spi, uint8_t addr) {
+}  // namespace
+
+namespace gl::hw {
+uint8_t Mcp2515::readRegister(uint8_t addr) {
   uint8_t data[2] = {CMD_READ, addr};
   uint8_t result;
   spi->writeReadBytes(data, &result, 2, 1);
   return result;
 }
 
-void readRegisters(gl::hw::ISpi* spi, uint8_t addr, uint8_t* data, uint8_t len) {
+void Mcp2515::readRegisters(uint8_t addr, uint8_t* data, uint8_t len) {
   uint8_t readRequest[2] = {CMD_READ, addr};
   spi->writeReadBytes(readRequest, data, 2, len);
 }
 
-void writeRegister(gl::hw::ISpi* spi, uint8_t addr, uint8_t val) {
+void Mcp2515::writeRegister(uint8_t addr, uint8_t val) {
   uint8_t data[3] = {CMD_WRITE, addr, val};
   spi->writeBytes(data, 3);
 }
 
-void writeRegisters(gl::hw::ISpi* spi, uint8_t addr, const uint8_t* data, uint8_t len) {
+void Mcp2515::writeRegisters(uint8_t addr, const uint8_t* data, uint8_t len) {
   std::vector<uint8_t> msg(2 + len);
   msg[0] = CMD_WRITE;
   msg[1] = addr;
@@ -89,53 +92,51 @@ void writeRegisters(gl::hw::ISpi* spi, uint8_t addr, const uint8_t* data, uint8_
   spi->writeBytes(msg.data(), msg.size());
 }
 
-void modifyRegister(gl::hw::ISpi* spi, uint8_t addr, uint8_t mask, uint8_t val) {
+void Mcp2515::modifyRegister(uint8_t addr, uint8_t mask, uint8_t val) {
   uint8_t data[4] = {CMD_MODIFY, addr, mask, val};
   spi->writeBytes(data, 4);
 }
 
-void setMode(gl::hw::ISpi* spi, const uint8_t mode) {
-  modifyRegister(spi, CANCTRL, MODE_MASK, mode);
-  while (!((readRegister(spi, CANCTRL) & MODE_MASK) == mode)) {}
+void Mcp2515::setMode(const uint8_t mode) {
+  modifyRegister(CANCTRL, MODE_MASK, mode);
+  while (!((readRegister(CANCTRL) & MODE_MASK) == mode)) {}
 }
 
-}  // namespace
-
-namespace gl::hw {
-Mcp2515::Mcp2515(ISpi* spi, utils::IClock* clock, CanId canId, std::vector<CanId> subscriptions)
+Mcp2515::Mcp2515(std::shared_ptr<ISpi> spi, std::shared_ptr<utils::IClock> clock, CanId canId,
+                 const std::vector<CanId>& subscriptions)
     : spi(spi), clock(clock), canId(canId), subscriptions(subscriptions) {
   // Reset
   spi->writeBytes(&CMD_RESET, 1);
   clock->wait(utils::Time::msec(300));
   // Set to config
-  setMode(spi, MODE_CONFIG);
+  setMode(MODE_CONFIG);
   // Configure speed
-  writeRegister(spi, CNF1, MHz8_20kBPS_CFG1);
-  writeRegister(spi, CNF2, MHz8_20kBPS_CFG2);
-  writeRegister(spi, CNF3, MHz8_20kBPS_CFG3);
+  writeRegister(CNF1, MHz8_20kBPS_CFG1);
+  writeRegister(CNF2, MHz8_20kBPS_CFG2);
+  writeRegister(CNF3, MHz8_20kBPS_CFG3);
   // Reset control registers
   uint8_t tx0 = TXB0CTRL;
   uint8_t tx1 = TXB1CTRL;
   uint8_t tx2 = TXB2CTRL;
   for (uint32_t i = 0; i < 14; i++) {
-    writeRegister(spi, tx0, 0);
-    writeRegister(spi, tx1, 0);
-    writeRegister(spi, tx2, 0);
+    writeRegister(tx0, 0);
+    writeRegister(tx1, 0);
+    writeRegister(tx2, 0);
     tx0++;
     tx1++;
     tx2++;
   }
-  writeRegister(spi, RXB0CTRL, 0);
-  writeRegister(spi, RXB1CTRL, 0);
+  writeRegister(RXB0CTRL, 0);
+  writeRegister(RXB1CTRL, 0);
   // Disable interrupts
-  writeRegister(spi, CANINTE, 0);
+  writeRegister(CANINTE, 0);
   // Enable both receive buffers
-  modifyRegister(spi, RXB0CTRL, RXB_RX_MASK | RXB_BUKT_MASK, RXB_RX_STDEXT | RXB_BUKT_MASK);
-  modifyRegister(spi, RXB1CTRL, RXB_RX_MASK, RXB_RX_STDEXT);
+  modifyRegister(RXB0CTRL, RXB_RX_MASK | RXB_BUKT_MASK, RXB_RX_STDEXT | RXB_BUKT_MASK);
+  modifyRegister(RXB1CTRL, RXB_RX_MASK, RXB_RX_STDEXT);
   // Set masks for both receive registers to check the full id
   const auto setFilter = [&](uint8_t sidhAddr, uint16_t id) {
     uint8_t maskData[4] = {static_cast<uint8_t>(id >> 3), static_cast<uint8_t>(id << 5), 0, 0};
-    writeRegisters(spi, sidhAddr, maskData, 4);
+    writeRegisters(sidhAddr, maskData, 4);
   };
   setFilter(RXM0SIDH, 0x07FF);
   setFilter(RXM1SIDH, 0x07FF);
@@ -153,7 +154,7 @@ Mcp2515::Mcp2515(ISpi* spi, utils::IClock* clock, CanId canId, std::vector<CanId
   }
 
   // Set to normal mode
-  setMode(spi, MODE_NORMAL);
+  setMode(MODE_NORMAL);
 }
 
 bool Mcp2515::send(const std::array<uint8_t, 8>& data, uint8_t len) {
@@ -161,7 +162,7 @@ bool Mcp2515::send(const std::array<uint8_t, 8>& data, uint8_t len) {
     uint8_t ctrlregs[3] = {TXB0CTRL, TXB1CTRL, TXB2CTRL};
     uint8_t txBuffSidh;
     for (uint8_t i = 0; i < 3; i++) {
-      if ((readRegister(spi, ctrlregs[i]) & TXB_TXREQ_M) == 0) {
+      if ((readRegister(ctrlregs[i]) & TXB_TXREQ_M) == 0) {
         *availableTxCtrl = ctrlregs[i];
         return true;
       }
@@ -175,41 +176,41 @@ bool Mcp2515::send(const std::array<uint8_t, 8>& data, uint8_t len) {
     return false;
   }
   // Set message
-  writeRegisters(spi, freeTxCtrl + 6, data.data(), len);
-  writeRegister(spi, freeTxCtrl + 5, len);
+  writeRegisters(freeTxCtrl + 6, data.data(), len);
+  writeRegister(freeTxCtrl + 5, len);
   // Set Id
   uint8_t idData[4];
   idData[0] = static_cast<uint8_t>(canId) >> 3;
   idData[1] = (static_cast<uint8_t>(canId) & 0x07) << 5;
   idData[2] = 0;
   idData[3] = 0;
-  writeRegisters(spi, freeTxCtrl + 1, idData, 4);
+  writeRegisters(freeTxCtrl + 1, idData, 4);
   // Start the transmission
-  modifyRegister(spi, freeTxCtrl, TXB_TXREQ_M, TXB_TXREQ_M);
+  modifyRegister(freeTxCtrl, TXB_TXREQ_M, TXB_TXREQ_M);
   return true;
 }
 
-std::pair<uint8_t, uint16_t> Mcp2515::read(std::array<uint8_t, 8>* data) {
+std::pair<uint8_t, CanId> Mcp2515::read(std::array<uint8_t, 8>* data) {
   uint8_t status;
   spi->writeReadBytes(&CMD_READ_STATUS, &status, 1, 1);
 
   const auto readCanMsg = [&](uint8_t sidhAddr, uint8_t* data) {
     uint8_t idData[4];
-    readRegisters(spi, sidhAddr, idData, 4);
-    const uint16_t id = (idData[SIDH] << 3) + (idData[SIDL] >> 5);
-    const uint8_t ctrl = readRegister(spi, sidhAddr - 1);
-    const uint8_t numBytes = readRegister(spi, sidhAddr + 4) & DLC_MASK;
-    readRegisters(spi, sidhAddr + 5, data, numBytes);
+    readRegisters(sidhAddr, idData, 4);
+    const CanId id{(idData[SIDH] << 3) + (idData[SIDL] >> 5)};
+    const uint8_t ctrl = readRegister(sidhAddr - 1);
+    const uint8_t numBytes = readRegister(sidhAddr + 4) & DLC_MASK;
+    readRegisters(sidhAddr + 5, data, numBytes);
     return std::make_pair(numBytes, id);
   };
 
-  std::pair<uint8_t, uint16_t> ret = {0, 0};
+  std::pair<uint8_t, CanId> ret = {0, CanId::NONE};
   if (status & STAT_RX0IF) {
     ret = readCanMsg(RXB0SIDH, data->data());
-    modifyRegister(spi, CANINTF, RX0IF, 0);
+    modifyRegister(CANINTF, RX0IF, 0);
   } else if (status & STAT_RX1IF) {
     ret = readCanMsg(RXB1SIDH, data->data());
-    modifyRegister(spi, CANINTF, RX1IF, 0);
+    modifyRegister(CANINTF, RX1IF, 0);
   }
   return ret;
 }

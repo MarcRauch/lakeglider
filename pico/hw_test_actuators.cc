@@ -25,7 +25,7 @@ int main() {
   gpio_set_dir(static_cast<uint8_t>(gl::hw::PinGpioActuator::LED_GREEEN), GPIO_OUT);
   gpio_put(static_cast<uint8_t>(gl::hw::PinGpioActuator::LED_RED), true);
   gpio_put(static_cast<uint8_t>(gl::hw::PinGpioActuator::LED_GREEEN), false);
-  clock.wait(gl::utils::GlTime::sec(4.));
+  clock.wait(gl::utils::Time::sec(4.));
   std::cout << "Starting..." << std::endl;
 
   // init HW
