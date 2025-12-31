@@ -48,7 +48,7 @@ enum class PinGpioActuator : uint8_t {
 */
 enum class PinAnalogActuator : uint8_t { PUMP_MEAS = 3 };
 
-enum class CanId : uint8_t { COMPUTE_BOARD = 0, SENSOR_BOARD = 1, ACTUATOR_BOARD = 2 };
+enum class CanId : uint8_t { NONE = 0, COMPUTE_BOARD = 1, SENSOR_BOARD = 2, ACTUATOR_BOARD = 3 };
 
 // Interface numbers
 const uint8_t SENSOR_I2C_INSTANCE_NR = 0;

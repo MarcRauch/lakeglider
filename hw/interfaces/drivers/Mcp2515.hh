@@ -2,6 +2,7 @@
 #define GL_HW_INTERFACES_DRIVERS_MCP2515_H_
 
 #include <array>
+#include <memory>
 #include <vector>
 
 #include "hw/Pins.hh"

@@ -110,30 +110,30 @@ Mcp2515::Mcp2515(ISpi& spi, const utils::IClock& clock, CanId canId, std::vector
   spi.writeBytes(std::array{static_cast<std::byte>(CMD_RESET)});
   clock.wait(utils::Time::msec(300));
   // Set to config
-  setMode(spi, MODE_CONFIG);
+  setMode(MODE_CONFIG);
   // Configure speed
-  writeRegister(spi, CNF1, MHz8_20kBPS_CFG1);
-  writeRegister(spi, CNF2, MHz8_20kBPS_CFG2);
-  writeRegister(spi, CNF3, MHz8_20kBPS_CFG3);
+  writeRegister(CNF1, MHz8_20kBPS_CFG1);
+  writeRegister(CNF2, MHz8_20kBPS_CFG2);
+  writeRegister(CNF3, MHz8_20kBPS_CFG3);
   // Reset control registers
   uint8_t tx0 = TXB0CTRL;
   uint8_t tx1 = TXB1CTRL;
   uint8_t tx2 = TXB2CTRL;
   for (uint32_t i = 0; i < 14; i++) {
-    writeRegister(spi, tx0, 0);
-    writeRegister(spi, tx1, 0);
-    writeRegister(spi, tx2, 0);
+    writeRegister(tx0, 0);
+    writeRegister(tx1, 0);
+    writeRegister(tx2, 0);
     tx0++;
     tx1++;
     tx2++;
   }
-  writeRegister(spi, RXB0CTRL, 0);
-  writeRegister(spi, RXB1CTRL, 0);
+  writeRegister(RXB0CTRL, 0);
+  writeRegister(RXB1CTRL, 0);
   // Disable interrupts
-  writeRegister(spi, CANINTE, 0);
+  writeRegister(CANINTE, 0);
   // Enable both receive buffers
-  modifyRegister(spi, RXB0CTRL, RXB_RX_MASK | RXB_BUKT_MASK, RXB_RX_STDEXT | RXB_BUKT_MASK);
-  modifyRegister(spi, RXB1CTRL, RXB_RX_MASK, RXB_RX_STDEXT);
+  modifyRegister(RXB0CTRL, RXB_RX_MASK | RXB_BUKT_MASK, RXB_RX_STDEXT | RXB_BUKT_MASK);
+  modifyRegister(RXB1CTRL, RXB_RX_MASK, RXB_RX_STDEXT);
   // Set masks for both receive registers to check the full id
   const auto setFilter = [&](uint8_t sidhAddr, uint16_t id) {
     std::array<std::byte, 4> maskData = {static_cast<std::byte>(id >> 3), static_cast<std::byte>(id << 5), std::byte{0},
@@ -156,7 +156,7 @@ Mcp2515::Mcp2515(ISpi& spi, const utils::IClock& clock, CanId canId, std::vector
   }
 
   // Set to normal mode
-  setMode(spi, MODE_NORMAL);
+  setMode(MODE_NORMAL);
 }
 
 bool Mcp2515::send(const std::array<std::byte, 8>& data, uint8_t len) {
@@ -187,7 +187,7 @@ bool Mcp2515::send(const std::array<std::byte, 8>& data, uint8_t len) {
   idData[3] = std::byte{0};
   writeRegisters(spi, freeTxCtrl + 1, idData, 4);
   // Start the transmission
-  modifyRegister(spi, freeTxCtrl, TXB_TXREQ_M, TXB_TXREQ_M);
+  modifyRegister(freeTxCtrl, TXB_TXREQ_M, TXB_TXREQ_M);
   return true;
 }
 
