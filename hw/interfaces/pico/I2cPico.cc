@@ -1,33 +1,42 @@
 #include "hw/interfaces/pico/I2cPico.hh"
 
+#include <vector>
+
 namespace gl::hw {
 
-bool I2cPico::readBytes(uint8_t address, uint8_t numBytes, uint8_t* dest) {
-  uint8_t bytesRead = i2c_read_timeout_us(i2cInst, address, dest, numBytes, false, 100 + 300 * numBytes);
-  return bytesRead == numBytes;
-}
-
-bool I2cPico::readRegister(uint8_t address, uint8_t reg, uint8_t numBytes, uint8_t* dest) {
-  bool success = writeBytes(address, &reg, 1);
-  success &= readBytes(address, numBytes, dest);
-  return success;
-}
-
-bool I2cPico::writeBytes(uint8_t address, const uint8_t* data, uint8_t numBytes) {
-  return i2c_write_timeout_us(i2cInst, address, data, numBytes, false, 100 + 300 * numBytes) == numBytes;
-}
-
-bool I2cPico::writeCmd(uint8_t address, uint8_t cmd, const uint8_t* data, uint8_t numBytes) {
-  uint8_t writeData[numBytes + 1];
-  writeData[0] = cmd;
-  for (uint8_t i = 0; i < numBytes; i++) {
-    writeData[i + 1] = data[i];
+bool I2cPico::readBytes(uint8_t address, std::span<std::byte> data) {
+  const uint32_t numBytes = data.size();
+  if (i2c_read_timeout_us(i2cInst, address, reinterpret_cast<uint8_t*>(data.data()), numBytes, false,
+                          100 + 300 * numBytes) != numBytes) {
+    return false;
   }
-  return writeBytes(address, writeData, numBytes + 1);
+  return true;
+}
+
+bool I2cPico::readRegister(uint8_t address, uint8_t reg, std::span<std::byte> data) {
+  if (!writeBytes(address, std::array{static_cast<std::byte>(reg)})) {
+    return false;
+  }
+  return readBytes(address, data);
+}
+
+bool I2cPico::writeBytes(uint8_t address, std::span<const std::byte> data) {
+  const uint32_t numBytes = data.size();
+  return i2c_write_timeout_us(i2cInst, address, reinterpret_cast<const uint8_t*>(data.data()), numBytes, false,
+                              100 + 300 * numBytes) == numBytes;
+}
+
+bool I2cPico::writeCmd(uint8_t address, uint8_t cmd, std::span<const std::byte> data) {
+  const uint32_t numBytes = data.size();
+  std::vector<std::byte> writeData;
+  writeData.reserve(1 + data.size());
+  writeData.push_back(static_cast<std::byte>(cmd));
+  writeData.insert(writeData.end(), data.begin(), data.end());
+  return writeBytes(address, writeData);
 }
 
 bool I2cPico::writeCmd(uint8_t address, uint8_t cmd, uint8_t data) {
-  return writeCmd(address, cmd, &data, 1);
+  return writeCmd(address, cmd, std::array{static_cast<std::byte>(data)});
 }
 
 }  // namespace gl::hw

@@ -1,8 +1,6 @@
 #ifndef GL_HW_INTERFACES_IGPIO_H_
 #define GL_HW_INTERFACES_IGPIO_H_
 
-#include "hw/Pins.hh"
-
 namespace gl::hw {
 
 /**

@@ -4,6 +4,7 @@
 #include <hardware/adc.h>
 #include <stdint.h>
 
+#include "hw/Pins.hh"
 #include "hw/interfaces/IAdc.hh"
 
 namespace gl::hw {

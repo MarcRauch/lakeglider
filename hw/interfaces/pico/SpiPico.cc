@@ -3,15 +3,20 @@
 #include <pico/stdlib.h>
 
 namespace gl::hw {
-bool SpiPico::readBytes(uint8_t numBytes, uint8_t* dest) {
+bool SpiPico::readBytes(std::span<std::byte> data) {
   select();
-  const bool success = spi_read_blocking(spiInst, 0x00, dest, numBytes) == numBytes;
+  if (spi_read_blocking(spiInst, 0x00, reinterpret_cast<uint8_t*>(data.data()), data.size()) != data.size()) {
+    deselect();
+    return false;
+  }
   deselect();
-  return success;
+  return true;
 }
-bool SpiPico::writeBytes(const uint8_t* data, uint8_t numBytes) {
+
+bool SpiPico::writeBytes(std::span<const std::byte> data) {
   select();
-  const bool success = spi_write_blocking(spiInst, data, numBytes) == numBytes;
+  const bool success =
+      spi_write_blocking(spiInst, reinterpret_cast<const uint8_t*>(data.data()), data.size()) == data.size();
   deselect();
   return success;
 }
@@ -20,12 +25,20 @@ void SpiPico::setInitialized() {
   isInitialized = true;
 }
 
-bool SpiPico::writeReadBytes(const uint8_t* dataWrite, uint8_t* dataRead, uint32_t numWrite, uint32_t numRead) {
+bool SpiPico::writeReadBytes(std::span<const std::byte> dataWrite, std::span<std::byte> dataRead) {
   select();
-  bool success = spi_write_blocking(spiInst, dataWrite, numWrite) == numWrite;
-  success &= spi_read_blocking(spiInst, 0x00, dataRead, numRead) == numRead;
+  const uint32_t numWrite = dataWrite.size();
+  if (spi_write_blocking(spiInst, reinterpret_cast<const uint8_t*>(dataWrite.data()), numWrite) != numWrite) {
+    deselect();
+    return false;
+  }
+  const uint32_t numRead = dataRead.size();
+  if (spi_read_blocking(spiInst, 0x00, reinterpret_cast<uint8_t*>(dataRead.data()), numRead) != numRead) {
+    deselect();
+    return false;
+  }
   deselect();
-  return success;
+  return true;
 }
 
 void SpiPico::select() {

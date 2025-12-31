@@ -1,7 +1,6 @@
 #ifndef GL_HW_ACTUATORS_POTENTIOMETER_H_
 #define GL_HW_ACTUATORS_POTENTIOMETER_H_
 
-#include "hw/Pins.hh"
 #include "hw/interfaces/IAdc.hh"
 
 namespace gl::hw {
@@ -15,7 +14,7 @@ class Potentiometer {
    * @param[in] endRight_v The voltage at the position giving the highest voltage
    * @returns Potentiometer object
    */
-  Potentiometer(IAdc* adc, double endLow_v, double endHigh_v);
+  Potentiometer(const IAdc& adc, double endLow_v, double endHigh_v);
 
   /**
    * Read the current position
@@ -24,7 +23,7 @@ class Potentiometer {
   double read();
 
  private:
-  IAdc* adc;
+  const IAdc& adc;
   const double endLow_v;
   const double endHigh_v;
 };

@@ -1,6 +1,6 @@
 #include "hw/sensors/Battery.hh"
 
-#include "hw/Pins.hh"
+#include "com/msg/Battery.hh"
 
 namespace {
 constexpr double MAX_CELL_VOLTAGE_V = 4.2;
@@ -12,21 +12,21 @@ constexpr double R2_OHM = 5000;
 
 namespace gl::hw {
 
-Battery::Battery(const IAdc* iAdc, const utils::IClock* clock, uint8_t numCells)
+Battery::Battery(const IAdc& iAdc, const utils::IClock& clock, uint8_t numCells)
     : iAdc(iAdc), clock(clock), numCells(numCells) {
   maxVoltage_v = numCells * MAX_CELL_VOLTAGE_V;
   minVoltage_v = numCells * MIN_CELL_VOLTAGE_V;
 }
 
-bool Battery::getReading(msg::Battery* msg) const {
-  double adcResult = iAdc->read();
-
+std::optional<msg::Battery> Battery::getReading() const {
+  double adcResult = iAdc.read();
   const float voltage_v = adcResult * REF_VOLTAGE_V * (R1_OHM + R2_OHM) / R2_OHM;
-  msg->voltage_v = voltage_v;
-  msg->cellVoltage_v = voltage_v / numCells;
-  msg->percentage = 100.0f * (voltage_v - minVoltage_v) / (maxVoltage_v - minVoltage_v);
-  msg->timestamp_us = clock->now().usec<uint64_t>();
-  return true;
+  msg::Battery msg;
+  msg.voltage_v = voltage_v;
+  msg.cellVoltage_v = voltage_v / numCells;
+  msg.percentage = 100.0f * (voltage_v - minVoltage_v) / (maxVoltage_v - minVoltage_v);
+  msg.timestamp_us = clock.now().usec<uint64_t>();
+  return msg;
 }
 
 }  // namespace gl::hw

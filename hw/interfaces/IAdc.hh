@@ -1,10 +1,6 @@
 #ifndef GL_HW_INTERFACES_IADC_H_
 #define GL_HW_INTERFACES_IADC_H_
 
-#include <stdint.h>
-
-#include "hw/Pins.hh"
-
 namespace gl::hw {
 
 /**

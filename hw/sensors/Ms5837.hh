@@ -22,7 +22,7 @@ class Ms5837 {
    * @param[in] i2cAddr I2C address of the sensor
    * @returns MS5837 pressure sensor object
    */
-  Ms5837(II2c* i2c, const utils::IClock* clock, uint8_t i2cAddr = 0x76);
+  Ms5837(II2c& i2c, const utils::IClock& clock, uint8_t i2cAddr = 0x76);
 
   /**
    * Initialize the MS5837 sensor.
@@ -32,15 +32,14 @@ class Ms5837 {
 
   /**
    * Call this over and over. Starts conversions and if the data is ready, reads it.
-   * @param[out] msg The depth message to fill
-   * @returns True if a measurement was read
+   * @returns The read data on convertion, nullopt otherwise.
    */
-  bool loop(msg::Depth* msg);
+  std::optional<msg::Depth> loop();
 
  private:
   const uint8_t i2cAddr;
-  II2c* i2c;
-  const utils::IClock* clock;
+  II2c& i2c;
+  const utils::IClock& clock;
 
   bool isInitialized = false;
   uint16_t c[8];

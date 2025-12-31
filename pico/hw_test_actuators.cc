@@ -25,7 +25,7 @@ int main() {
   gpio_set_dir(static_cast<uint8_t>(gl::hw::PinGpioActuator::LED_GREEEN), GPIO_OUT);
   gpio_put(static_cast<uint8_t>(gl::hw::PinGpioActuator::LED_RED), true);
   gpio_put(static_cast<uint8_t>(gl::hw::PinGpioActuator::LED_GREEEN), false);
-  clock.wait(gl::utils::GlTime::sec(4.));
+  clock.wait(gl::utils::Time::sec(4.));
   std::cout << "Starting..." << std::endl;
 
   // init HW
@@ -38,13 +38,13 @@ int main() {
   gl::hw::SpiPico spiMot2(spiInst, gl::hw::PinGpioActuator::SPI_MISO, gl::hw::PinGpioActuator::SPI_MOSI,
                           gl::hw::PinGpioActuator::SPI_SCK, gl::hw::PinGpioActuator::SPI_CS_MOT2);
   gl::hw::GpioPico gpioValve(gl::hw::PinGpioActuator::VALVE, true);
-  gl::hw::Valve valve(&gpioValve);
+  gl::hw::Valve valve(gpioValve);
   gl::hw::Tmc5160::Config config1 = {.maxRotations = 15.};
-  gl::hw::Tmc5160 motor1(&spiMot1, &clock, config1);
+  gl::hw::Tmc5160 motor1(spiMot1, clock, config1);
   gl::hw::Tmc5160::Config config2 = {.maxRotations = 0.2};
-  gl::hw::Tmc5160 motor2(&spiMot2, &clock, config2);
-  gl::hw::Potentiometer potentiometer(&adcPot, 1., 2.);
-  gl::hw::EqiUartMg1 pump(&uartPump);
+  gl::hw::Tmc5160 motor2(spiMot2, clock, config2);
+  gl::hw::Potentiometer potentiometer(adcPot, 1., 2.);
+  gl::hw::EqiUartMg1 pump(uartPump);
 
   gpio_put(static_cast<uint8_t>(gl::hw::PinGpioSensor::LED_RED), false);
   gpio_put(static_cast<uint8_t>(gl::hw::PinGpioSensor::LED_GREEEN), true);

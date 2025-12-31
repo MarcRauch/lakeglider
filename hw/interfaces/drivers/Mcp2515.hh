@@ -23,7 +23,7 @@ class Mcp2515 {
    * @param[in] subscriptions Vector of canids to receive
    * @returns Mcp2515 object
    */
-  Mcp2515(ISpi* spi, utils::IClock* clock, CanId canId, std::vector<CanId> subscriptions);
+  Mcp2515(ISpi& spi, const utils::IClock& clock, CanId canId, std::vector<CanId> subscriptions);
 
   /**
    * Send a dataframe
@@ -31,17 +31,17 @@ class Mcp2515 {
    * @param[in] len Number of bytes to send
    * @returns True if send was succesful
    */
-  bool send(const std::array<uint8_t, 8>& data, uint8_t len);
+  bool send(const std::array<std::byte, 8>& data, uint8_t len);
 
   /**
    * @param[in] data Array to save data to
    * @returns Number of bytes read and the id of the sender
    */
-  std::pair<uint8_t, uint16_t> read(std::array<uint8_t, 8>* data);
+  std::pair<uint8_t, uint16_t> read(std::array<std::byte, 8>& data);
 
  private:
-  ISpi* spi;
-  utils::IClock* clock;
+  ISpi& spi;
+  const utils::IClock& clock;
 
   const CanId canId;
   const std::vector<CanId> subscriptions;

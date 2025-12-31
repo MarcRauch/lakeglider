@@ -2,9 +2,9 @@
 #define GL_HW_SENSORS_BATTERY_H_
 
 #include <stdint.h>
+#include <optional>
 
 #include "com/msg/Battery.hh"
-#include "hw/Pins.hh"
 #include "hw/interfaces/IAdc.hh"
 #include "utils/time/IClock.hh"
 
@@ -21,18 +21,17 @@ class Battery {
    * @param[in] numCells Number of cells of the LiPo battery.
    * @returns Corresponding battery monitor object.
    */
-  Battery(const IAdc* iAdc, const utils::IClock* clock, uint8_t numCells = 4);
+  Battery(const IAdc& iAdc, const utils::IClock& clock, uint8_t numCells = 4);
 
   /**
    * Get battery charge information. This includes, total voltage, cell voltage and charge percentage.
-   * @param[out] msg The battery message to be populated.
-   * @returns True if the battery reading was successful.
+   * @returns Measurement in case of successful reading, nullopt otherwise.
    */
-  bool getReading(msg::Battery* msg) const;
+  std::optional<msg::Battery> getReading() const;
 
  private:
-  const IAdc* iAdc;
-  const utils::IClock* clock;
+  const IAdc& iAdc;
+  const utils::IClock& clock;
   const uint8_t numCells;
 
   float maxVoltage_v;

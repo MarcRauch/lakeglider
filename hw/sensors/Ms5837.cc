@@ -1,6 +1,9 @@
 #include "hw/sensors/Ms5837.hh"
 
 #include <stdlib.h>
+#include <vector>
+
+#include "com/msg/Depth.hh"
 
 namespace {
 // Registries on the MS5837
@@ -30,21 +33,20 @@ uint8_t crc4(uint16_t* data) {
 }
 
 // Read the content of the Prom used for calibration
-bool readProm(uint8_t i2cAddr, gl::hw::II2c* i2c, uint8_t promAddr, uint16_t* result) {
-  uint8_t buff[2];
-  if (!i2c->readRegister(i2cAddr, promAddr, 2, buff)) {
-    return false;
+std::optional<uint16_t> readProm(uint8_t i2cAddr, gl::hw::II2c& i2c, uint8_t promAddr) {
+  std::array<std::byte,2> buf;
+  if (!i2c.readRegister(i2cAddr, promAddr, buf)) {
+    return std::nullopt;
   }
   // MSB is sent first
-  *result = (static_cast<uint16_t>(buff[0]) << 8) | buff[1];
-  return true;
+  return (static_cast<uint16_t>(buf[0]) << 8) | static_cast<uint16_t>(buf[1]);
 }
 }  // namespace
 
 namespace gl {
 namespace hw {
 
-Ms5837::Ms5837(II2c* i2c, const utils::IClock* clock, uint8_t i2cAddr) : i2cAddr(i2cAddr), i2c(i2c), clock(clock) {
+Ms5837::Ms5837(II2c& i2c, const utils::IClock& clock, uint8_t i2cAddr) : i2cAddr(i2cAddr), i2c(i2c), clock(clock) {
   for (uint8_t i = 0; i < 10; i++) {
     if (initialize()) {
       isInitialized = true;
@@ -54,51 +56,62 @@ Ms5837::Ms5837(II2c* i2c, const utils::IClock* clock, uint8_t i2cAddr) : i2cAddr
 }
 
 bool Ms5837::initialize() {
-  bool success = i2c->writeBytes(i2cAddr, &CMD_RESET, 1);
+  if (!i2c.writeBytes(i2cAddr, std::array{static_cast<std::byte>(CMD_RESET)})) {
+    return false;
+  }
   // Wait for reset
-  clock->wait(utils::Time::msec(100));
+  clock.wait(utils::Time::msec(100));
   for (uint8_t i = 0; i < 7; i++) {
-    success &= readProm(i2cAddr, i2c, CMD_PROM + 2 * i, &c[i]);
+    const std::optional<uint16_t> promVal = readProm(i2cAddr, i2c, CMD_PROM + 2 * i);
+    if (!promVal.has_value()) {
+      return false;
+    }
+    c[i] = *promVal;
   }
   uint8_t crcExpected = c[0] >> 12;
   c[0] &= 0x0FFF;
   c[7] = 0;
-  return success && crcExpected == crc4(c);
+  return crcExpected == crc4(c);
 }
 
-bool Ms5837::loop(msg::Depth* msg) {
-  utils::Time now = clock->now();
+std::optional<msg::Depth> Ms5837::loop() {
+  utils::Time now = clock.now();
   // Start first convertion
   if (!convertionTime1.has_value() && !convertionTime2.has_value()) {
-    if (i2c->writeBytes(i2cAddr, &CMD_CONVERT_D1, 1)) {
+    if (i2c.writeBytes(i2cAddr, std::array{static_cast<std::byte>(CMD_CONVERT_D1)})) {
       convertionTime1 = now;
     }
-    return false;
+    return std::nullopt;
   }
   // If the first convertion is done read value and start the second one
   if (convertionTime1.has_value()) {
     if ((now - *convertionTime1).msec<double>() > 10) {
       convertionTime1.reset();
-      uint8_t buf[3];
-      if (i2c->readRegister(i2cAddr, CMD_ADC, 3, buf)) {}
-      d1 = (static_cast<uint32_t>(buf[0]) << 16) | (static_cast<uint32_t>(buf[1]) << 8) | buf[2];
-      if (i2c->writeBytes(i2cAddr, &CMD_CONVERT_D2, 1)) {
+      std::array<std::byte, 3> buf;
+      if (!i2c.readRegister(i2cAddr, CMD_ADC, buf)) {
+        return std::nullopt;
+      }
+      d1 = (static_cast<uint32_t>(buf[0]) << 16) | (static_cast<uint32_t>(buf[1]) << 8) | static_cast<uint32_t>(buf[2]);
+      if (i2c.writeBytes(i2cAddr, std::array{static_cast<std::byte>(CMD_CONVERT_D2)})) {
         convertionTime2 = now;
       }
     }
-    return false;
+    return std::nullopt;
   }
   // If the second convertion is done, read value and return message
   if (convertionTime2.has_value()) {
     if ((now - *convertionTime2).msec<double>() > 10) {
       convertionTime2.reset();
-      uint8_t buf[3];
-      if (i2c->readRegister(i2cAddr, CMD_ADC, 3, buf)) {}
-      const double d2 = (static_cast<uint32_t>(buf[0]) << 16) | (static_cast<uint32_t>(buf[1]) << 8) | buf[2];
+      std::array<std::byte, 3> buf;
+      if (!i2c.readRegister(i2cAddr, CMD_ADC, buf)) {
+        return std::nullopt;
+      }
+      const double d2 =
+          (static_cast<uint32_t>(buf[0]) << 16) | (static_cast<uint32_t>(buf[1]) << 8) | static_cast<uint32_t>(buf[2]);
 
       // The result is only 0 if the read failed
       if (d1 == 0 || d2 == 0) {
-        return false;
+        return std::nullopt;
       }
       int32_t dT = static_cast<int32_t>(d2) - (static_cast<int32_t>(c[5]) << 8);
       int32_t temp = 2000 + ((static_cast<int64_t>(dT) * static_cast<int64_t>(c[6])) >> 23);
@@ -124,14 +137,15 @@ bool Ms5837::loop(msg::Depth* msg) {
       }
       const int64_t off2 = off - offi;
       const int64_t sens2 = sens - sensi;
-      msg->temperature_degc = (temp - dT) / 100.;
-      msg->pressure_pa = ((((static_cast<int64_t>(d1) * sens2) >> 21) - off2) >> 13) * 10.;
-      msg->depth_m = msg->pressure_pa / (9.81 * 997.);
-      msg->timestamp_us = clock->now().usec<uint64_t>();
-      return true;
+      msg::Depth msg;
+      msg.temperature_degc = (temp - dT) / 100.;
+      msg.pressure_pa = ((((static_cast<int64_t>(d1) * sens2) >> 21) - off2) >> 13) * 10.;
+      msg.depth_m = msg.pressure_pa / (9.81 * 997.);
+      msg.timestamp_us = clock.now().usec<uint64_t>();
+      return msg;
     }
   }
-  return false;
+  return std::nullopt;
 }
 
 }  // namespace hw

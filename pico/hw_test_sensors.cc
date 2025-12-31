@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <iostream>
 #include "pico/stdlib.h"
 
 #include "com/msg/Battery.hh"
@@ -13,24 +14,25 @@
 
 void testBattery(gl::hw::Battery& b) {
   printf("Starting battery test\n");
-  gl::msg::Battery reading;
-  b.getReading(&reading);
-
-  printf("Total voltage: %fV\n", reading.voltage_v);
-  printf("Percentage: %f%\n", reading.percentage);
-  printf("Cell Voltage: %fV\n", reading.cellVoltage_v);
+  const std::optional<gl::msg::Battery> reading = b.getReading();
+  if (!reading.has_value()) {
+    std::cout << "Battery reading failed" << std::endl;
+  }
+  printf("Total voltage: %fV\n", reading->voltage_v);
+  printf("Percentage: %f%\n", reading->percentage);
+  printf("Cell Voltage: %fV\n", reading->cellVoltage_v);
   printf("Done\n");
 }
 
 void testDepth(gl::hw::Ms5837& depth) {
   printf("Starting depth test\n");
-  gl::msg::Depth msg;
-  while (!depth.loop(&msg)) {
+  std::optional<gl::msg::Depth> msg = depth.loop();
+  while (!msg.has_value()) {
     sleep_ms(10);
   }
-  printf("Depth: %fm\n", msg.depth_m);
-  printf("Temp: %f°C\n", msg.temperature_degc);
-  printf("Pressure: %fpa\n", msg.pressure_pa);
+  printf("Depth: %fm\n", msg->depth_m);
+  printf("Temp: %f°C\n", msg->temperature_degc);
+  printf("Pressure: %fpa\n", msg->pressure_pa);
   printf("Done\n");
 }
 
@@ -66,9 +68,9 @@ int main() {
   gl::hw::I2cPico i2cPico(i2cInst, gl::hw::PinGpioSensor::I2C_SCL, gl::hw::PinGpioSensor::I2C_SDA);
   gl::utils::PicoClock clock;
 
-  gl::hw::Battery bat1(&adcBat1, &clock);
-  gl::hw::Battery bat2(&adcBat2, &clock);
-  gl::hw::Ms5837 depth(&i2cPico, &clock);
+  gl::hw::Battery bat1(adcBat1, clock);
+  gl::hw::Battery bat2(adcBat2, clock);
+  gl::hw::Ms5837 depth(i2cPico, clock);
 
   uint8_t i = 0;
   for (; !depth.initialize() && i < 10; i++) {

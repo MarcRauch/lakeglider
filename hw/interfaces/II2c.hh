@@ -2,6 +2,7 @@
 #define GL_HW_INTERFACES_II2C_H_
 
 #include <stdint.h>
+#include <span>
 
 namespace gl::hw {
 
@@ -13,40 +14,36 @@ class II2c {
   /**
    * Request bytes and then read them
    * @param[in] address Address to request bytes from
-   * @param[in] numBytes Number of bytes to read
-   * @param[out] dest Buffer to save result to
-   * @returns True if the read was successful
+   * @param[out] data Buffer to write to. Numbers of bytes to read given by size
+   * @returns True on successful read
    */
-  virtual bool readBytes(uint8_t address, uint8_t numBytes, uint8_t* dest) = 0;
+  virtual bool readBytes(uint8_t address, std::span<std::byte>) = 0;
 
   /**
    * Request bytes by sending a register address and then read them
    * @param[in] address Address to request bytes from
    * @param[in] reg Address of register to read
-   * @param[in] numBytes Number of bytes to read
-   * @param[out] dest Buffer to save result to
-   * @returns True if the read was successful
+   * @param[out] data Buffer to read to. number of requested bytes given by size of buffer
+   * @returns True on successful read
    */
-  virtual bool readRegister(uint8_t address, uint8_t reg, uint8_t numBytes, uint8_t* dest) = 0;
+  virtual bool readRegister(uint8_t address, uint8_t reg, std::span<std::byte> data) = 0;
 
   /**
    * Send a buffer of bytes
    * @param[in] address Address to send bytes too
    * @param[in] data Buffer of data to send
-   * @param[in] numBytes Number of bytes to send
    * @returns True if the write was successful
    */
-  virtual bool writeBytes(uint8_t address, const uint8_t* data, uint8_t numBytes) = 0;
+  virtual bool writeBytes(uint8_t address, std::span<const std::byte> data) = 0;
 
   /**
    * Write a command id followed by the command itself with multiple bytes
    * @param[in] address Address to send bytes too
    * @param[in] cmd Command id, usually the register to fill
    * @param[in] data The data to write to that register
-   * @param[in] numBytes Number of bytes to write
    * @returns True if the write was successful
    */
-  virtual bool writeCmd(uint8_t address, uint8_t cmd, const uint8_t* data, uint8_t numBytes) = 0;
+  virtual bool writeCmd(uint8_t address, uint8_t cmd, std::span<const std::byte> data) = 0;
 
   /**
    * Write a command id followed by the command itself with a single byte

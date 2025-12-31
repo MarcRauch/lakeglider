@@ -3,8 +3,8 @@
 
 #include <stdint.h>
 #include <concepts>
+#include <optional>
 
-#include "hw/Pins.hh"
 #include "hw/interfaces/ISpi.hh"
 #include "utils/time/IClock.hh"
 
@@ -16,7 +16,7 @@ namespace tmc5160Details {
 // Requires a valid register (contains a uint32_t bytes field)
 template <typename T>
 concept ConceptRegister = requires(T t) {
-  { t.bytes } -> std::same_as<uint32_t&>;
+  {t.bytes}->std::same_as<uint32_t&>;
 };
 }  // namespace tmc5160Details
 
@@ -36,7 +36,7 @@ class Tmc5160 {
    * @param[in] config Tmc5160 config to be used
    * @returns Tmc5160 object
    */
-  Tmc5160(ISpi* spi, utils::IClock* clock, const Config& config);
+  Tmc5160(ISpi& spi, const utils::IClock& clock, const Config& config);
 
   /**
    * Move in the negative direction until a limit switch is hit. Set the zero position and move to the middle of the 
@@ -79,15 +79,15 @@ class Tmc5160 {
    * @param[in] val Value to be written to the register
    */
   template <tmc5160Details::ConceptRegister T>
-  void writeRegister(Register addr, T val) {
+  bool writeRegister(Register addr, T val) {
     const uint32_t bytes = val.bytes;
-    uint8_t bufSend[5];
-    bufSend[0] = static_cast<uint32_t>(addr) | 1 << 7;
-    bufSend[4] = static_cast<uint8_t>(bytes & 0xFF);
-    bufSend[3] = static_cast<uint8_t>((bytes >> 8) & 0xFF);
-    bufSend[2] = static_cast<uint8_t>((bytes >> 16) & 0xFF);
-    bufSend[1] = static_cast<uint8_t>((bytes >> 24) & 0xFF);
-    spi->writeBytes(bufSend, 5);
+    std::array<std::byte, 5> bufSend;
+    bufSend[0] = static_cast<std::byte>(addr) | static_cast<std::byte>(1 << 7);
+    bufSend[4] = static_cast<std::byte>(bytes & 0xFF);
+    bufSend[3] = static_cast<std::byte>((bytes >> 8) & 0xFF);
+    bufSend[2] = static_cast<std::byte>((bytes >> 16) & 0xFF);
+    bufSend[1] = static_cast<std::byte>((bytes >> 24) & 0xFF);
+    return spi.writeBytes(bufSend);
   }
 
   /**
@@ -96,15 +96,19 @@ class Tmc5160 {
    * @returns Value in this register.
    */
   template <tmc5160Details::ConceptRegister T>
-  T readRegister(Register addr) {
-    uint8_t bufSend[5];
-    uint8_t bufRecv[5];
-    bufSend[0] = static_cast<uint8_t>(addr);
+  std::optional<T> readRegister(Register addr) {
+    std::array<std::byte, 5> bufSend;
+    bufSend[0] = static_cast<std::byte>(addr);
     // Read twice, the first time requests the value, the second time actually reads it
-    spi->writeBytes(bufSend, 5);
-    spi->readBytes(5, bufRecv);
-    spi->writeBytes(bufSend, 5);
-    spi->readBytes(5, bufRecv);
+    std::array<std::byte, 5> bufRecv;
+    for (uint32_t i = 0; i < 2; i++) {
+      if (!spi.writeBytes(bufSend)) {
+        return std::nullopt;
+      }
+      if (!spi.readBytes(bufRecv)) {
+        return std::nullopt;
+      }
+    }
     uint32_t dat = static_cast<uint32_t>(bufRecv[1]);
     dat = (dat << 8) | static_cast<uint32_t>(bufRecv[2]);
     dat = (dat << 8) | static_cast<uint32_t>(bufRecv[3]);
@@ -113,8 +117,8 @@ class Tmc5160 {
   }
 
   const Config config;
-  ISpi* spi;
-  utils::IClock* clock;
+  ISpi& spi;
+  const utils::IClock& clock;
 };
 
 }  // namespace gl::hw

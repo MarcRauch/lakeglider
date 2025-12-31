@@ -30,8 +30,8 @@ class UartPico : public IUart {
     gpio_set_function(static_cast<uint8_t>(pinRx), GPIO_FUNC_UART);
   }
 
-  bool readBytes(uint32_t numBytes, uint8_t* dest) override;
-  bool writeBytes(const uint8_t* data, uint32_t numBytes) override;
+  bool readBytes(std::span<std::byte> data) override;
+  bool writeBytes(std::span<const std::byte> data) override;
 
  private:
   uart_inst_t* uartInst = nullptr;

@@ -1,16 +1,16 @@
 #include "hw/actuators/Valve.hh"
 
 namespace gl::hw {
-Valve::Valve(IGpio* gpio) : gpio(gpio) {
+Valve::Valve(IGpio& gpio) : gpio(gpio) {
   close();
 }
 
 void Valve::open() {
-  gpio->setHigh();
+  gpio.setHigh();
 }
 
 void Valve::close() {
-  gpio->setLow();
+  gpio.setLow();
 }
 
 }  // namespace gl::hw

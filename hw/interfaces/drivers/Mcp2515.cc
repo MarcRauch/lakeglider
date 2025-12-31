@@ -64,49 +64,51 @@ constexpr uint8_t SIDH = 0;
 constexpr uint8_t SIDL = 1;
 constexpr uint8_t DLC_MASK = 0x0F;
 
-uint8_t readRegister(gl::hw::ISpi* spi, uint8_t addr) {
-  uint8_t data[2] = {CMD_READ, addr};
-  uint8_t result;
-  spi->writeReadBytes(data, &result, 2, 1);
+std::byte readRegister(gl::hw::ISpi& spi, uint8_t addr) {
+  const std::array<std::byte, 2> data{static_cast<std::byte>(CMD_READ), static_cast<std::byte>(addr)};
+  std::byte result;
+  spi.writeReadBytes(data, std::span(&result, 1));
   return result;
 }
 
-void readRegisters(gl::hw::ISpi* spi, uint8_t addr, uint8_t* data, uint8_t len) {
-  uint8_t readRequest[2] = {CMD_READ, addr};
-  spi->writeReadBytes(readRequest, data, 2, len);
+void readRegisters(gl::hw::ISpi& spi, uint8_t addr, std::span<std::byte> data, uint8_t len) {
+  const std::array<std::byte, 2> readRequest{static_cast<std::byte>(CMD_READ), static_cast<std::byte>(addr)};
+  spi.writeReadBytes(readRequest, data);
 }
 
-void writeRegister(gl::hw::ISpi* spi, uint8_t addr, uint8_t val) {
-  uint8_t data[3] = {CMD_WRITE, addr, val};
-  spi->writeBytes(data, 3);
+void writeRegister(gl::hw::ISpi& spi, uint8_t addr, uint8_t val) {
+  std::array<std::byte, 3> data = {static_cast<std::byte>(CMD_WRITE), static_cast<std::byte>(addr),
+                                   static_cast<std::byte>(val)};
+  spi.writeBytes(data);
 }
 
-void writeRegisters(gl::hw::ISpi* spi, uint8_t addr, const uint8_t* data, uint8_t len) {
-  std::vector<uint8_t> msg(2 + len);
-  msg[0] = CMD_WRITE;
-  msg[1] = addr;
-  memcpy(msg.data() + 2, data, len);
-  spi->writeBytes(msg.data(), msg.size());
+void writeRegisters(gl::hw::ISpi& spi, uint8_t addr, std::span<const std::byte> data, uint8_t len) {
+  std::vector<std::byte> msg(2 + len);
+  msg[0] = static_cast<std::byte>(CMD_WRITE);
+  msg[1] = static_cast<std::byte>(addr);
+  memcpy(msg.data() + 2, data.data(), len);
+  spi.writeBytes(msg);
 }
 
-void modifyRegister(gl::hw::ISpi* spi, uint8_t addr, uint8_t mask, uint8_t val) {
-  uint8_t data[4] = {CMD_MODIFY, addr, mask, val};
-  spi->writeBytes(data, 4);
+void modifyRegister(gl::hw::ISpi& spi, uint8_t addr, uint8_t mask, uint8_t val) {
+  std::array<std::byte, 4> data = {static_cast<std::byte>(CMD_MODIFY), static_cast<std::byte>(addr),
+                                   static_cast<std::byte>(mask), static_cast<std::byte>(val)};
+  spi.writeBytes(data);
 }
 
-void setMode(gl::hw::ISpi* spi, const uint8_t mode) {
+void setMode(gl::hw::ISpi& spi, const uint8_t mode) {
   modifyRegister(spi, CANCTRL, MODE_MASK, mode);
-  while (!((readRegister(spi, CANCTRL) & MODE_MASK) == mode)) {}
+  while (!((readRegister(spi, CANCTRL) & static_cast<std::byte>(MODE_MASK)) == static_cast<std::byte>(mode))) {}
 }
 
 }  // namespace
 
 namespace gl::hw {
-Mcp2515::Mcp2515(ISpi* spi, utils::IClock* clock, CanId canId, std::vector<CanId> subscriptions)
-    : spi(spi), clock(clock), canId(canId), subscriptions(subscriptions) {
+Mcp2515::Mcp2515(ISpi& spi, const utils::IClock& clock, CanId canId, std::vector<CanId> subscriptions)
+    : spi(spi), clock(clock), canId(canId), subscriptions(std::move(subscriptions)) {
   // Reset
-  spi->writeBytes(&CMD_RESET, 1);
-  clock->wait(utils::Time::msec(300));
+  spi.writeBytes(std::array{static_cast<std::byte>(CMD_RESET)});
+  clock.wait(utils::Time::msec(300));
   // Set to config
   setMode(spi, MODE_CONFIG);
   // Configure speed
@@ -134,7 +136,8 @@ Mcp2515::Mcp2515(ISpi* spi, utils::IClock* clock, CanId canId, std::vector<CanId
   modifyRegister(spi, RXB1CTRL, RXB_RX_MASK, RXB_RX_STDEXT);
   // Set masks for both receive registers to check the full id
   const auto setFilter = [&](uint8_t sidhAddr, uint16_t id) {
-    uint8_t maskData[4] = {static_cast<uint8_t>(id >> 3), static_cast<uint8_t>(id << 5), 0, 0};
+    std::array<std::byte, 4> maskData = {static_cast<std::byte>(id >> 3), static_cast<std::byte>(id << 5), std::byte{0},
+                                         std::byte{0}};
     writeRegisters(spi, sidhAddr, maskData, 4);
   };
   setFilter(RXM0SIDH, 0x07FF);
@@ -156,12 +159,11 @@ Mcp2515::Mcp2515(ISpi* spi, utils::IClock* clock, CanId canId, std::vector<CanId
   setMode(spi, MODE_NORMAL);
 }
 
-bool Mcp2515::send(const std::array<uint8_t, 8>& data, uint8_t len) {
+bool Mcp2515::send(const std::array<std::byte, 8>& data, uint8_t len) {
   const auto findFreeTx = [&](uint8_t* availableTxCtrl) {
     uint8_t ctrlregs[3] = {TXB0CTRL, TXB1CTRL, TXB2CTRL};
-    uint8_t txBuffSidh;
     for (uint8_t i = 0; i < 3; i++) {
-      if ((readRegister(spi, ctrlregs[i]) & TXB_TXREQ_M) == 0) {
+      if ((static_cast<uint8_t>(readRegister(spi, ctrlregs[i])) & TXB_TXREQ_M) == 0) {
         *availableTxCtrl = ctrlregs[i];
         return true;
       }
@@ -175,40 +177,40 @@ bool Mcp2515::send(const std::array<uint8_t, 8>& data, uint8_t len) {
     return false;
   }
   // Set message
-  writeRegisters(spi, freeTxCtrl + 6, data.data(), len);
+  writeRegisters(spi, freeTxCtrl + 6, data, len);
   writeRegister(spi, freeTxCtrl + 5, len);
   // Set Id
-  uint8_t idData[4];
-  idData[0] = static_cast<uint8_t>(canId) >> 3;
-  idData[1] = (static_cast<uint8_t>(canId) & 0x07) << 5;
-  idData[2] = 0;
-  idData[3] = 0;
+  std::array<std::byte, 4> idData;
+  idData[0] = static_cast<std::byte>(static_cast<uint8_t>(canId) >> 3);
+  idData[1] = static_cast<std::byte>((static_cast<uint8_t>(canId) & 0x07) << 5);
+  idData[2] = std::byte{0};
+  idData[3] = std::byte{0};
   writeRegisters(spi, freeTxCtrl + 1, idData, 4);
   // Start the transmission
   modifyRegister(spi, freeTxCtrl, TXB_TXREQ_M, TXB_TXREQ_M);
   return true;
 }
 
-std::pair<uint8_t, uint16_t> Mcp2515::read(std::array<uint8_t, 8>* data) {
-  uint8_t status;
-  spi->writeReadBytes(&CMD_READ_STATUS, &status, 1, 1);
+std::pair<uint8_t, uint16_t> Mcp2515::read(std::array<std::byte, 8>& data) {
+  std::byte status;
+  spi.writeReadBytes(std::array{static_cast<std::byte>(CMD_READ_STATUS)}, std::span(&status, 1));
 
-  const auto readCanMsg = [&](uint8_t sidhAddr, uint8_t* data) {
-    uint8_t idData[4];
+  const auto readCanMsg = [&](uint8_t sidhAddr) {
+    std::array<std::byte, 4> idData;
     readRegisters(spi, sidhAddr, idData, 4);
-    const uint16_t id = (idData[SIDH] << 3) + (idData[SIDL] >> 5);
-    const uint8_t ctrl = readRegister(spi, sidhAddr - 1);
-    const uint8_t numBytes = readRegister(spi, sidhAddr + 4) & DLC_MASK;
+    const uint16_t id = (static_cast<uint16_t>(idData[SIDH]) << 3) + static_cast<uint16_t>(idData[SIDL] >> 5);
+    const std::byte ctrl = readRegister(spi, sidhAddr - 1);
+    const uint32_t numBytes = static_cast<uint32_t>(readRegister(spi, sidhAddr + 4)) & DLC_MASK;
     readRegisters(spi, sidhAddr + 5, data, numBytes);
     return std::make_pair(numBytes, id);
   };
 
   std::pair<uint8_t, uint16_t> ret = {0, 0};
-  if (status & STAT_RX0IF) {
-    ret = readCanMsg(RXB0SIDH, data->data());
+  if (static_cast<uint8_t>(status) & STAT_RX0IF) {
+    ret = readCanMsg(RXB0SIDH);
     modifyRegister(spi, CANINTF, RX0IF, 0);
-  } else if (status & STAT_RX1IF) {
-    ret = readCanMsg(RXB1SIDH, data->data());
+  } else if (static_cast<uint8_t>(status) & STAT_RX1IF) {
+    ret = readCanMsg(RXB1SIDH);
     modifyRegister(spi, CANINTF, RX1IF, 0);
   }
   return ret;

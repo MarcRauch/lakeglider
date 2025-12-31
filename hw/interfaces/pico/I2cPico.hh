@@ -32,13 +32,13 @@ class I2cPico : public II2c {
     i2c_init(i2cInst, 100 * 1000);
   }
 
-  bool readBytes(uint8_t address, uint8_t numBytes, uint8_t* dest) override;
+  bool readBytes(uint8_t address, std::span<std::byte> data) override;
 
-  bool readRegister(uint8_t address, uint8_t reg, uint8_t numBytes, uint8_t* dest) override;
+  bool readRegister(uint8_t address, uint8_t reg, std::span<std::byte> data) override;
 
-  bool writeBytes(uint8_t address, const uint8_t* data, uint8_t numBytes) override;
+  bool writeBytes(uint8_t address, std::span<const std::byte> data) override;
 
-  bool writeCmd(uint8_t address, uint8_t cmd, const uint8_t* data, uint8_t numBytes) override;
+  bool writeCmd(uint8_t address, uint8_t cmd, std::span<const std::byte> data) override;
 
   bool writeCmd(uint8_t address, uint8_t cmd, uint8_t data) override;
 

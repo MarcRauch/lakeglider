@@ -11,7 +11,7 @@ class Valve {
    * @param[in] gpioValve Gpio pin connected to the valve
    * @returns Valve object
    */
-  Valve(IGpio* gpio);
+  Valve(IGpio& gpio);
 
   /**
    * Opens the valve
@@ -24,7 +24,7 @@ class Valve {
   void close();
 
  private:
-  IGpio* gpio;
+  IGpio& gpio;
 };
 
 }  // namespace gl::hw

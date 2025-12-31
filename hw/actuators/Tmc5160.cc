@@ -257,7 +257,7 @@ uint32_t calculateAcceleration(double acc_radps2) {
 namespace gl {
 namespace hw {
 
-Tmc5160::Tmc5160(ISpi* spi, utils::IClock* clock, const Config& config) : config(config), spi(spi), clock(clock) {
+Tmc5160::Tmc5160(ISpi& spi, const utils::IClock& clock, const Config& config) : config(config), spi(spi), clock(clock) {
   // Initialize device
   writeRegister(Register::GSTAT, Gstat{.reset = 1, .uvCp = 1});
   writeRegister(Register::GCONF, Gconf{.enPwmMode = 1, .shaft = config.invertDirection});
@@ -278,13 +278,16 @@ Tmc5160::Tmc5160(ISpi* spi, utils::IClock* clock, const Config& config) : config
   writeRegister(Register::AMAX, Amax{.aMax = calculateAcceleration(config.acc_radps2)});
   writeRegister(Register::DMAX, Dmax{.dMax = calculateAcceleration(config.acc_radps2)});
   writeRegister(Register::SW_MODE, SwMode{.stopLEnable = 1});
-  clock->wait(utils::Time::sec(2));
+  clock.wait(utils::Time::sec(2));
 }
 
 void Tmc5160::home() {
   writeRegister(Register::RAMPMODE, Rampmode{.bytes = 2});
-  while (!readRegister<RampStat>(Register::RAMP_STAT).statusStopL) {
-    clock->wait(utils::Time::msec(100));
+
+  std::optional<RampStat> rampStat = readRegister<RampStat>(Register::RAMP_STAT);
+  while (rampStat.has_value() && !rampStat->statusStopL) {
+    clock.wait(utils::Time::msec(100));
+    rampStat = readRegister<RampStat>(Register::RAMP_STAT);
   }
   writeRegister(Register::XACTUAL, Xactual{.xActual = 0});
   writeRegister(Register::XTARGET, Xtarget{.xTarget = 0});

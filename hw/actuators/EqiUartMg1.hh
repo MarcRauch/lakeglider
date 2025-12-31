@@ -1,9 +1,6 @@
 #ifndef GL_HW_ACTUATORS_EQIUARTMG1_H_
 #define GL_HW_ACTUATORS_EQIUARTMG1_H_
 
-#include <stdint.h>
-#include <string>
-
 #include "hw/interfaces/IUart.hh"
 
 namespace gl::hw {
@@ -19,7 +16,7 @@ class EqiUartMg1 {
    * @param[in] uart Uart port connected to the pump
    * @returns Pump object
    */
-  EqiUartMg1(IUart* uart);
+  EqiUartMg1(IUart& uart);
 
   /**
    * Start the pump
@@ -44,7 +41,7 @@ class EqiUartMg1 {
   void setSpeed(double speed);
 
  private:
-  IUart* uart;
+  IUart& uart;
 };
 
 }  // namespace gl::hw
