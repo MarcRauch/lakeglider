@@ -200,7 +200,6 @@ std::pair<uint8_t, CanId> Mcp2515::read(std::array<std::byte, 8>& data) {
     std::array<std::byte, 4> idData;
     readRegisters(spi, sidhAddr, idData, 4);
     const uint16_t id = (static_cast<uint16_t>(idData[SIDH]) << 3) + static_cast<uint16_t>(idData[SIDL] >> 5);
-    const std::byte ctrl = readRegister(spi, sidhAddr - 1);
     const uint32_t numBytes = static_cast<uint32_t>(readRegister(spi, sidhAddr + 4)) & DLC_MASK;
     readRegisters(spi, sidhAddr + 5, data, numBytes);
     return std::make_pair(numBytes, static_cast<CanId>(id));
