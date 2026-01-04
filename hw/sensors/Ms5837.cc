@@ -34,7 +34,7 @@ uint8_t crc4(uint16_t* data) {
 
 // Read the content of the Prom used for calibration
 std::optional<uint16_t> readProm(uint8_t i2cAddr, gl::hw::II2c& i2c, uint8_t promAddr) {
-  std::array<std::byte,2> buf;
+  std::array<std::byte, 2> buf;
   if (!i2c.readRegister(i2cAddr, promAddr, buf)) {
     return std::nullopt;
   }

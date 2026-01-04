@@ -1,6 +1,7 @@
 #include "hw/interfaces/drivers/Mcp2515.hh"
 
 #include <cstring>
+#include "hw/Pins.hh"
 
 namespace {
 // Commands
@@ -104,36 +105,36 @@ void setMode(gl::hw::ISpi& spi, const uint8_t mode) {
 }  // namespace
 
 namespace gl::hw {
-Mcp2515::Mcp2515(ISpi& spi, const utils::IClock& clock, CanId canId, std::vector<CanId> subscriptions)
-    : spi(spi), clock(clock), canId(canId), subscriptions(std::move(subscriptions)) {
+Mcp2515::Mcp2515(ISpi& spi, const utils::IClock& clock, CanId canId, const std::vector<CanId>& subscriptions)
+    : spi(spi), clock(clock), canId(canId) {
   // Reset
   spi.writeBytes(std::array{static_cast<std::byte>(CMD_RESET)});
   clock.wait(utils::Time::msec(300));
   // Set to config
-  setMode(MODE_CONFIG);
+  setMode(spi, MODE_CONFIG);
   // Configure speed
-  writeRegister(CNF1, MHz8_20kBPS_CFG1);
-  writeRegister(CNF2, MHz8_20kBPS_CFG2);
-  writeRegister(CNF3, MHz8_20kBPS_CFG3);
+  writeRegister(spi, CNF1, MHz8_20kBPS_CFG1);
+  writeRegister(spi, CNF2, MHz8_20kBPS_CFG2);
+  writeRegister(spi, CNF3, MHz8_20kBPS_CFG3);
   // Reset control registers
   uint8_t tx0 = TXB0CTRL;
   uint8_t tx1 = TXB1CTRL;
   uint8_t tx2 = TXB2CTRL;
   for (uint32_t i = 0; i < 14; i++) {
-    writeRegister(tx0, 0);
-    writeRegister(tx1, 0);
-    writeRegister(tx2, 0);
+    writeRegister(spi, tx0, 0);
+    writeRegister(spi, tx1, 0);
+    writeRegister(spi, tx2, 0);
     tx0++;
     tx1++;
     tx2++;
   }
-  writeRegister(RXB0CTRL, 0);
-  writeRegister(RXB1CTRL, 0);
+  writeRegister(spi, RXB0CTRL, 0);
+  writeRegister(spi, RXB1CTRL, 0);
   // Disable interrupts
-  writeRegister(CANINTE, 0);
+  writeRegister(spi, CANINTE, 0);
   // Enable both receive buffers
-  modifyRegister(RXB0CTRL, RXB_RX_MASK | RXB_BUKT_MASK, RXB_RX_STDEXT | RXB_BUKT_MASK);
-  modifyRegister(RXB1CTRL, RXB_RX_MASK, RXB_RX_STDEXT);
+  modifyRegister(spi, RXB0CTRL, RXB_RX_MASK | RXB_BUKT_MASK, RXB_RX_STDEXT | RXB_BUKT_MASK);
+  modifyRegister(spi, RXB1CTRL, RXB_RX_MASK, RXB_RX_STDEXT);
   // Set masks for both receive registers to check the full id
   const auto setFilter = [&](uint8_t sidhAddr, uint16_t id) {
     std::array<std::byte, 4> maskData = {static_cast<std::byte>(id >> 3), static_cast<std::byte>(id << 5), std::byte{0},
@@ -156,7 +157,7 @@ Mcp2515::Mcp2515(ISpi& spi, const utils::IClock& clock, CanId canId, std::vector
   }
 
   // Set to normal mode
-  setMode(MODE_NORMAL);
+  setMode(spi, MODE_NORMAL);
 }
 
 bool Mcp2515::send(const std::array<std::byte, 8>& data, uint8_t len) {
@@ -187,11 +188,11 @@ bool Mcp2515::send(const std::array<std::byte, 8>& data, uint8_t len) {
   idData[3] = std::byte{0};
   writeRegisters(spi, freeTxCtrl + 1, idData, 4);
   // Start the transmission
-  modifyRegister(freeTxCtrl, TXB_TXREQ_M, TXB_TXREQ_M);
+  modifyRegister(spi, freeTxCtrl, TXB_TXREQ_M, TXB_TXREQ_M);
   return true;
 }
 
-std::pair<uint8_t, uint16_t> Mcp2515::read(std::array<std::byte, 8>& data) {
+std::pair<uint8_t, CanId> Mcp2515::read(std::array<std::byte, 8>& data) {
   std::byte status;
   spi.writeReadBytes(std::array{static_cast<std::byte>(CMD_READ_STATUS)}, std::span(&status, 1));
 
@@ -202,10 +203,10 @@ std::pair<uint8_t, uint16_t> Mcp2515::read(std::array<std::byte, 8>& data) {
     const std::byte ctrl = readRegister(spi, sidhAddr - 1);
     const uint32_t numBytes = static_cast<uint32_t>(readRegister(spi, sidhAddr + 4)) & DLC_MASK;
     readRegisters(spi, sidhAddr + 5, data, numBytes);
-    return std::make_pair(numBytes, id);
+    return std::make_pair(numBytes, static_cast<CanId>(id));
   };
 
-  std::pair<uint8_t, uint16_t> ret = {0, 0};
+  std::pair<uint8_t, CanId> ret = {0, CanId::NONE};
   if (static_cast<uint8_t>(status) & STAT_RX0IF) {
     ret = readCanMsg(RXB0SIDH);
     modifyRegister(spi, CANINTF, RX0IF, 0);

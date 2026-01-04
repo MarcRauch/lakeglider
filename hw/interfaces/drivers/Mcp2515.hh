@@ -2,7 +2,6 @@
 #define GL_HW_INTERFACES_DRIVERS_MCP2515_H_
 
 #include <array>
-#include <memory>
 #include <vector>
 
 #include "hw/Pins.hh"
@@ -24,7 +23,7 @@ class Mcp2515 {
    * @param[in] subscriptions Vector of canids to receive
    * @returns Mcp2515 object
    */
-  Mcp2515(ISpi& spi, const utils::IClock& clock, CanId canId, std::vector<CanId> subscriptions);
+  Mcp2515(ISpi& spi, const utils::IClock& clock, CanId canId, const std::vector<CanId>& subscriptions);
 
   /**
    * Send a dataframe
@@ -38,14 +37,13 @@ class Mcp2515 {
    * @param[in] data Array to save data to
    * @returns Number of bytes read and the id of the sender
    */
-  std::pair<uint8_t, uint16_t> read(std::array<std::byte, 8>& data);
+  std::pair<uint8_t, CanId> read(std::array<std::byte, 8>& data);
 
  private:
   ISpi& spi;
   const utils::IClock& clock;
 
   const CanId canId;
-  const std::vector<CanId> subscriptions;
 };
 
 }  // namespace gl::hw

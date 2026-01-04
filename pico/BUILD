@@ -36,3 +36,17 @@ cc_binary(
     ],
 )
 
+cc_binary(
+    name = "hw_test_com",
+    srcs = ["hw_test_com.cc"],
+    defines = [
+        "PICO_STDIO_USB=1",
+        "PICO_STDIO_UART=0",
+    ],
+    deps = [
+        "//hw/interfaces/drivers:canInterface",
+        "//hw/interfaces/pico:spiPico",
+        "//utils/time:timePico",
+        "@pico-sdk//src/rp2_common/pico_stdlib:pico_stdlib",
+    ],
+)
