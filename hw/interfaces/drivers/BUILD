@@ -2,8 +2,12 @@ load("@rules_cc//cc:defs.bzl", "cc_library")
 
 cc_library(
     name = "canInterface",
-    srcs = ["Mcp2515.cc"],
+    srcs = [
+        "CanManager.cc",
+        "Mcp2515.cc",
+    ],
     hdrs = [
+        "CanManager.hh",
         "Mcp2515.hh",
     ],
     visibility = ["//visibility:public"],

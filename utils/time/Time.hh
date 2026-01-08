@@ -79,21 +79,21 @@ class Time {
    * @param[in] rhs timestamp to be added
    * @returns sum of the two timestamps
    */
-  Time operator+(const Time& rhs) { return Time::usec(time_us + rhs.usec<uint64_t>()); }
+  Time operator+(const Time& rhs) const { return Time::usec(time_us + rhs.usec<uint64_t>()); }
 
   /**
    * Overloads the - operator
    * @param[in] rhs timestamp to be subtracted
    * @returns difference of the two timestamps
    */
-  Time operator-(const Time& rhs) { return Time::usec(time_us - rhs.usec<uint64_t>()); }
+  Time operator-(const Time& rhs) const { return Time::usec(time_us - rhs.usec<uint64_t>()); }
 
   /**
    * Overloads the < operator
    * @param[in] rhs timestamp to be compared
    * @returns true if the timestamp to be compared is larger
    */
-  bool operator<(const Time& rhs) { return time_us < rhs.usec<uint64_t>(); }
+  bool operator<(const Time& rhs) const { return time_us < rhs.usec<uint64_t>(); }
 
   /**
    * Overloads the += operator
