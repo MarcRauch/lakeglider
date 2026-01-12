@@ -3,3 +3,4 @@ bazel-*
 .vscode
 .DS_Store
 compile_commands*
+rpi_sysroot
