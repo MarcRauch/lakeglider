@@ -44,6 +44,18 @@ enum class PinGpioActuator : uint8_t {
 };
 
 /**
+* Pin nubers of connected digital electrical components to the compute board.
+*/
+enum class PinGpioCompute : uint8_t {
+  LED_RED = 5,
+  LED_GREEN = 6,
+  SPI_CS = 8,
+  SPI_MISO = 9,
+  SPI_MOSI = 10,
+  SPI_SCK = 11
+};
+
+/**
 * Pin numbers of connected analog electrical components of the sensor board.
 */
 enum class PinAnalogActuator : uint8_t { PUMP_MEAS = 3 };
@@ -57,9 +69,11 @@ const uint8_t ACTUATOR_SPI_INSTANCE_NR = 0;
 const uint8_t ACTUATOR_UART_INSTANCE_NR = 0;
 
 template <typename T>
-concept ConceptPinGpio = std::is_same_v<T, PinGpioSensor> || std::is_same_v<T, PinGpioActuator>;
+concept ConceptPinGpio =
+    std::is_same_v<T, PinGpioSensor> || std::is_same_v<T, PinGpioActuator> || std::is_same_v<T, PinGpioCompute>;
 template <typename T>
-concept ConceptPinAnalog = std::is_same_v<T, PinAnalogSensor> || std::is_same_v<T, PinAnalogActuator>;
+concept ConceptPinAnalog =
+    std::is_same_v<T, PinAnalogSensor> || std::is_same_v<T, PinAnalogActuator> || std::is_same_v<T, PinGpioCompute>;
 }  // namespace gl::hw
 
 #endif  // HW_PINS_H_

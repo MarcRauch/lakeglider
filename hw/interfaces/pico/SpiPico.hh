@@ -18,8 +18,8 @@ Implements the SPI interface for the rp2350
 class SpiPico : public ISpi {
  public:
   /**
-   * Constructs a I2c object and initializes it
-   * @param[in] spiInst I2c instance to be used
+   * Constructs a SPI object and initializes it
+   * @param[in] spiInst SPI instance to be used
    * @param[in] pinMiso hardware pin number for the MISO connection
    * @param[in] pinMosi hardware pin number for the MOSI connection
    * @param[in] pinSck hardware pin number for the Sck connection
