@@ -1,16 +1,14 @@
 #include "hw/actuators/Tmc5160.hh"
 
 #include <cmath>
-
-#include "hw/Pins.hh"
-#include "utils/Consts.hh"
+#include <numbers>
 
 namespace {
 // Consts
 constexpr uint32_t MICRO_STEPS = 256;
 constexpr uint32_t STEPS_PER_REVOLUTION = 2048;
 constexpr double MICRO_STEPS_PER_RAD =
-    static_cast<double>(MICRO_STEPS * STEPS_PER_REVOLUTION) / (2. * gl::utils::consts::PI);
+    static_cast<double>(MICRO_STEPS * STEPS_PER_REVOLUTION) / (2. * std::numbers::pi);
 
 // Registers
 union Gconf {

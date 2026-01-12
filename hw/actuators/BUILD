@@ -20,7 +20,6 @@ cc_library(
         "//hw/interfaces:gpioInterface",
         "//hw/interfaces:spiInterface",
         "//hw/interfaces:uartInterface",
-        "//utils:consts",
         "//utils/time:timeInterface",
     ],
 )

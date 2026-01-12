@@ -6,26 +6,29 @@ module(
 )
 
 bazel_dep(name = "googletest", version = "1.17.0")
+
 bazel_dep(name = "hedron_compile_commands", dev_dependency = True)
+
 bazel_dep(name = "pico-sdk", version = "2.1.1")
 bazel_dep(name = "platforms", version = "1.0.0")
 bazel_dep(name = "rules_cc", version = "0.2.14")
 bazel_dep(name = "toolchains_llvm", version = "1.6.0")
+bazel_dep(name = "spdlog", version = "1.17.0")
 
 # Compile commands
 git_override(
     module_name = "hedron_compile_commands",
-    remote = "https://github.com/hedronvision/bazel-compile-commands-extractor.git",
     commit = "0e990032f3c5a866e72615cf67e5ce22186dcb97",
+    remote = "https://github.com/hedronvision/bazel-compile-commands-extractor.git",
 )
 
 # Toolchains
 new_local_repository = use_repo_rule("@bazel_tools//tools/build_defs/repo:local.bzl", "new_local_repository")
+
 new_local_repository(
     name = "rpi_sysroot",
-    path = "rpi_sysroot", 
     build_file_content = "filegroup(name = 'files', srcs = glob(['**']), visibility = ['//visibility:public'])",
-
+    path = "rpi_sysroot",
 )
 
 llvm = use_extension("@toolchains_llvm//toolchain/extensions:llvm.bzl", "llvm")
