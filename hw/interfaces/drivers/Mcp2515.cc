@@ -1,6 +1,7 @@
 #include "hw/interfaces/drivers/Mcp2515.hh"
 
 #include <cstring>
+
 #include "hw/Pins.hh"
 
 namespace {

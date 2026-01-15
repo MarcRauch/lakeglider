@@ -2,9 +2,9 @@
 #ifndef GL_UTILS_LOGGING_LOGGER_H
 #define GL_HW_INTERFACES_ISPI_H_
 
-#include <string>
+#include <spdlog/spdlog.h>
 
-#include "spdlog/spdlog.h"
+#include <string>
 
 namespace gl::utils::log {
 /**

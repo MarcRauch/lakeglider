@@ -2,6 +2,7 @@
 #define GL_HW_SENSORS_MS5837_H
 
 #include <stdint.h>
+
 #include <optional>
 
 #include "com/msg/Depth.hh"

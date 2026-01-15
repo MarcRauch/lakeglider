@@ -44,8 +44,12 @@ cc_binary(
         "PICO_STDIO_UART=0",
     ],
     deps = [
+        "//com/msg:msgs",
+        "//com/msg:utils",
         "//hw/interfaces/drivers:canInterface",
+        "//hw/interfaces/pico:adcPico",
         "//hw/interfaces/pico:spiPico",
+        "//hw/sensors",
         "//utils/time:timePico",
         "@pico-sdk//src/rp2_common/pico_stdlib:pico_stdlib",
     ],

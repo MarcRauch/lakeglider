@@ -2,6 +2,7 @@
 #define GL_HW_INTERFACES_II2C_H_
 
 #include <stdint.h>
+
 #include <span>
 
 namespace gl::hw {

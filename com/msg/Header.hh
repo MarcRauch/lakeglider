@@ -14,6 +14,7 @@ See details on https://docs.google.com/document/d/1rO527Eti_Bo6kDqbO_FjO-jc7IsgA
 struct __attribute__((packed)) Header {
   uint8_t version = 0x01;
   Type type;
+  uint64_t timestamp_us;
   uint8_t deviceId;
   uint8_t msgLength;
 };

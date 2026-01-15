@@ -2,6 +2,7 @@
 #define GL_HW_ACTUATORS_TMC5160_H_
 
 #include <stdint.h>
+
 #include <concepts>
 #include <optional>
 

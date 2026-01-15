@@ -2,6 +2,7 @@
 #define GL_HW_SENSORS_BATTERY_H_
 
 #include <stdint.h>
+
 #include <optional>
 
 #include "com/msg/Battery.hh"

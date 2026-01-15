@@ -46,7 +46,10 @@ void CanManager::loop() {
   }
 
   //Send TODO: This is very hacky. we need to avoid the receive buffer overflowing, so we only send one buffer max and only
-  // send once every 5 cycles. Fix this by connecting the receive buffer interrupt lines.
+  // send once every 5 cycles. Possible fixes
+  // - CAN Fd with larger buffers
+  // - Add flow control
+  // - Add interrupt line on new message
   if (sendBuffer.size() > 0 && loopCounter % 5 == 0 && mcp2515->send(sendBuffer.front().data, sendBuffer.front().len)) {
     sendBuffer.pop();
   }
