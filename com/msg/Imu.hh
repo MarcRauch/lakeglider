@@ -12,7 +12,6 @@ Message for IMU reading.
 */
 struct __attribute__((packed)) Imu {
   static constexpr Type TYPE = Type::Imu;
-  uint64_t timestamp_us;
   float acc_mps2[3];
   float w_radps[3];
 };

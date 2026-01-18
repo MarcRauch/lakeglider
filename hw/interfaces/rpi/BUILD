@@ -6,6 +6,9 @@ cc_library(
     hdrs = [
         "SpiRpi.hh",
     ],
+    target_compatible_with = [
+        "@platforms//os:linux",
+    ],
     visibility = ["//visibility:public"],
     deps = [
         "//hw:pins",

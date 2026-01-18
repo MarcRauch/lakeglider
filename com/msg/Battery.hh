@@ -12,7 +12,6 @@ Message for battery reading
 */
 struct __attribute__((packed)) Battery {
   static constexpr Type TYPE = Type::Battery;
-  uint64_t timestamp_us;
   float voltage_v;
   float cellVoltage_v;
   float percentage;

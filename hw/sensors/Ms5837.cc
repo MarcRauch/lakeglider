@@ -142,7 +142,6 @@ std::optional<msg::Depth> Ms5837::loop() {
       msg.temperature_degc = (temp - dT) / 100.;
       msg.pressure_pa = ((((static_cast<int64_t>(d1) * sens2) >> 21) - off2) >> 13) * 10.;
       msg.depth_m = msg.pressure_pa / (9.81 * 997.);
-      msg.timestamp_us = clock.now().usec<uint64_t>();
       return msg;
     }
   }

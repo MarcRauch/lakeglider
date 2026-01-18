@@ -5,7 +5,7 @@
 
 #include "com/msg/Battery.hh"
 #include "com/msg/Header.hh"
-#include "com/msg/utils.hh"
+#include "com/msg/Msg.hh"
 #include "hw/Pins.hh"
 #include "hw/interfaces/drivers/CanManager.hh"
 #include "hw/interfaces/drivers/Mcp2515.hh"
@@ -46,8 +46,8 @@ int main() {
         std::cout << "Could not read battery" << std::endl;
         continue;
       }
-      const std::vector<std::byte> serializedMsg = gl::msg::serialize(*batMsg, 2, clock.now());
-      canManager.writeMsg(serializedMsg);
+      const gl::msg::Msg msg(*batMsg, 1, clock.now());
+      canManager.writeMsg(msg.getSerializedMsg());
       const gl::utils::Time waitStart = clock.now();
       while (clock.now() < waitStart + gl::utils::Time::sec(3)) {
         canManager.loop();
@@ -56,24 +56,26 @@ int main() {
     }
   } else {
     while (true) {
-      std::optional<gl::hw::CanManager::CanMsg> msg;
-      while (!msg.has_value()) {
-        msg = canManager.readMsg();
+      std::optional<gl::hw::CanManager::CanMsg> canMsg;
+      while (!canMsg.has_value()) {
+        canMsg = canManager.readMsg();
         canManager.loop();
         clock.wait(gl::utils::Time::msec(10));
       }
-      std::cout << "Received data from " << static_cast<uint32_t>(msg->canId) << std::endl;
-      const std::optional<gl::msg::Header> header = gl::msg::deserializeHeader(msg->data);
-      if (!header.has_value()) {
+      std::cout << "Received " << canMsg->data.size() << " bytes from " << static_cast<uint32_t>(canMsg->canId)
+                << std::endl;
+      const std::optional<gl::msg::Msg> msg = gl::msg::Msg::fromBytes(canMsg->data);
+      if (!msg.has_value()) {
         std::cout << "Decoding header failed" << std::endl;
         continue;
       }
-      const std::optional<gl::msg::Battery> batMsg = gl::msg::deserializeMsg<gl::msg::Battery>(msg->data, *header);
+      const std::optional<gl::msg::Battery> batMsg = msg->getMsg<gl::msg::Battery>();
+      const gl::msg::Header header = msg->getHeader();
       if (!batMsg.has_value()) {
         std::cout << "failed to deserialize message" << std::endl;
         continue;
       }
-      std::cout << "Message Volatage" << batMsg->voltage_v << " at time: " << header->timestamp_us << std::endl;
+      std::cout << "Message Volatage" << batMsg->voltage_v << " at time: " << header.timestamp_us << std::endl;
     }
   }
   return 0;

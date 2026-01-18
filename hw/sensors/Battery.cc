@@ -25,7 +25,6 @@ std::optional<msg::Battery> Battery::getReading() const {
   msg.voltage_v = voltage_v;
   msg.cellVoltage_v = voltage_v / numCells;
   msg.percentage = 100.0f * (voltage_v - minVoltage_v) / (maxVoltage_v - minVoltage_v);
-  msg.timestamp_us = clock.now().usec<uint64_t>();
   return msg;
 }
 
