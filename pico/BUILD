@@ -45,7 +45,6 @@ cc_binary(
     ],
     deps = [
         "//com/msg:msgs",
-        "//com/msg:utils",
         "//hw/interfaces/drivers:canInterface",
         "//hw/interfaces/pico:adcPico",
         "//hw/interfaces/pico:spiPico",

@@ -12,7 +12,7 @@ namespace gl::utils::log {
  * @param[in] name Name of logger to be displayed
  * @returns Created logger
  */
-std::unique_ptr<spdlog::logger> createLogger(const std::string& name);
+std::shared_ptr<spdlog::logger> createLogger(const std::string& name);
 }  // namespace gl::utils::log
 
 #endif  // GL_HW_INTERFACES_ISPI_H

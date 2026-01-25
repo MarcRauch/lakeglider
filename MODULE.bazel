@@ -9,6 +9,7 @@ bazel_dep(name = "googletest", version = "1.17.0")
 
 bazel_dep(name = "hedron_compile_commands", dev_dependency = True)
 
+bazel_dep(name = "asio", version = "1.34.2")
 bazel_dep(name = "gflags", version = "2.2.2")
 bazel_dep(name = "pico-sdk", version = "2.2.2-develop.bcr.20260105-1cc19a21")
 bazel_dep(name = "platforms", version = "1.0.0")

@@ -78,7 +78,7 @@ class Msg {
    */
   template <IsMsg T>
   std::optional<T> getMsg() const {
-    if (serializedMsg.size() != sizeof(header) + header.msgLength) {
+    if (serializedMsg.size() != sizeof(header) + header.msgLength + 2) {
       return std::nullopt;
     }
     if (header.type != T::TYPE) {

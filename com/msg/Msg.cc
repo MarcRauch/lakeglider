@@ -31,7 +31,7 @@ std::optional<Msg> Msg::fromBytes(std::span<const std::byte> data) {
   }
   Msg msg;
   std::memcpy(&msg.header, data.data(), sizeof(header));
-  msg.serializedMsg.assign(data.begin(), data.end() - 2);
+  msg.serializedMsg.assign(data.begin(), data.end());
   return msg;
 }
 

@@ -10,6 +10,7 @@ cc_library(
         "Header.hh",
         "Imu.hh",
         "Msg.hh",
+        "Subscriptions.hh",
         "Time.hh",
         "Type.hh",
     ],
