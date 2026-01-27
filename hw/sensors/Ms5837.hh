@@ -18,7 +18,7 @@ class Ms5837 {
  public:
   /**
    * Constructs a MS5837 pressure sensor object
-   * @param[in] i2c Pointer to i2c interface used for communication with the sensor
+   * @param[in] i2c i2c interface used for communication with the sensor
    * @param[in] clock Pointer to generic time provider to be used
    * @param[in] i2cAddr I2C address of the sensor
    * @returns MS5837 pressure sensor object
