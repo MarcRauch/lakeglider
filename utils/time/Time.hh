@@ -15,7 +15,7 @@ class Time {
    * @param[in] time_us Time to be set in micro seconds
    * @returns Time object containing the specified time
    */
-  Time(uint64_t time_us = 0) : time_us(time_us){};
+  Time(int64_t time_us = 0) : time_us(time_us) {};
 
   /**
    * Constructs a Time from a given time in seconds of any type
@@ -24,7 +24,7 @@ class Time {
    */
   template <typename T>
   static Time sec(T time_s) {
-    return Time(static_cast<uint32_t>(time_s * 1e6));
+    return Time(static_cast<int64_t>(time_s * 1e6));
   };
 
   /**
@@ -34,7 +34,7 @@ class Time {
    */
   template <typename T>
   static Time msec(T time_ms) {
-    return Time(static_cast<uint32_t>(time_ms * 1e3));
+    return Time(static_cast<int64_t>(time_ms * 1e3));
   };
 
   /**
@@ -44,7 +44,7 @@ class Time {
    */
   template <typename T>
   static Time usec(T time_us) {
-    return Time(static_cast<uint32_t>(time_us));
+    return Time(static_cast<int64_t>(time_us));
   };
 
   /**
@@ -96,6 +96,13 @@ class Time {
   bool operator<(const Time& rhs) const { return time_us < rhs.usec<uint64_t>(); }
 
   /**
+   * Overloads the > operator
+   * @param[in] rhs timestamp to be compared
+   * @returns true if the timestamp to be compared is smaller
+   */
+  bool operator>(const Time& rhs) const { return time_us > rhs.usec<uint64_t>(); }
+
+  /**
    * Overloads the += operator
    * @param[in] rhs the time to be added
    * @returns the value with rhs added to it
@@ -108,6 +115,6 @@ class Time {
  private:
   int64_t time_us;
 };
-}  // namespace gl::time
+}  // namespace gl::utils
 
 #endif  // GL_UTILS_TIME_Time_H_

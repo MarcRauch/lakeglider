@@ -30,13 +30,14 @@ std::optional<Msg> Msg::fromBytes(std::span<const std::byte> data) {
     return std::nullopt;
   }
   Msg msg;
+  msg.msgLen = data.size();
   std::memcpy(&msg.header, data.data(), sizeof(header));
-  msg.serializedMsg.assign(data.begin(), data.end());
+  std::copy(data.begin(), data.end(), msg.serializedMsg.begin());
   return msg;
 }
 
-const std::vector<std::byte>& Msg::getSerializedMsg() const {
-  return serializedMsg;
+std::span<const std::byte> Msg::getSerializedMsg() const {
+  return std::span(serializedMsg).first(msgLen);
 }
 
 gl::msg::Header Msg::getHeader() const {
@@ -44,10 +45,10 @@ gl::msg::Header Msg::getHeader() const {
 }
 
 uint16_t Msg::calculateCrc() const {
-  return calculateCrcImpl(serializedMsg);
+  return calculateCrcImpl(getSerializedMsg().first(msgLen - 2));
 }
 
 uint16_t Msg::getCrc() const {
-  return getCrcImpl(serializedMsg);
+  return getCrcImpl(getSerializedMsg());
 }
 }  // namespace gl::msg

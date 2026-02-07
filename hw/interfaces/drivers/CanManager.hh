@@ -2,11 +2,8 @@
 #define GL_HW_INTERFACES_DRIVERS_CANMANAGER_H_
 
 #include <array>
-#include <map>
 #include <memory>
 #include <optional>
-#include <queue>
-#include <vector>
 
 #include "hw/interfaces/drivers/Mcp2515.hh"
 
@@ -30,8 +27,10 @@ class CanManager {
    * Containing the sending canId and the received data
    */
   struct CanMsg {
+    static constexpr uint32_t MAX_MSG_LEN = 256;
     CanId canId;
-    std::vector<std::byte> data;
+    uint32_t msgLen;
+    std::array<std::byte, MAX_MSG_LEN> data;
   };
 
   /**
@@ -63,17 +62,25 @@ class CanManager {
     std::array<std::byte, 8> data;
   };
 
-  struct CanBuffer {
-    uint16_t len = 0;
-    std::vector<CanFrame> data;
+  struct RecvBuffer {
+    static constexpr uint32_t MAX_FRAMES = 64;
+    bool isValid = false;
+    CanId canId;
+    uint8_t msgId;
+    uint32_t lastUsed;
+    int32_t msgLen;
+    uint16_t numRecv = 0;
+    std::array<CanFrame, MAX_FRAMES> buffer;
   };
-  // Key: canId, msgId
-  using BufferKey = std::pair<CanId, uint8_t>;
-  std::map<BufferKey, CanBuffer> recvBuffer;
+  static constexpr uint32_t MAX_PARTIAL_RECV = 8;
+  std::array<RecvBuffer, MAX_PARTIAL_RECV> recvBuffers;
 
-  std::queue<CanFrame> sendBuffer;
+  static constexpr uint32_t SEND_QUEUE_SIZE = 512;
+  std::array<CanFrame, SEND_QUEUE_SIZE> sendBuffer;
+  uint32_t sendHead = 0;
+  uint32_t sendTail = 0;
+
   uint8_t msgIdCounter = 0;
-
   uint32_t loopCounter = 0;
 };
 }  // namespace gl::hw

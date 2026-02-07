@@ -1,8 +1,6 @@
 #ifndef GL_COM_MSG_BATTERY_H_
 #define GL_COM_MSG_BATTERY_H_
 
-#include <stdint.h>
-
 #include "com/msg/Type.hh"
 
 namespace gl::msg {

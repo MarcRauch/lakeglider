@@ -1,6 +1,6 @@
 
 #ifndef GL_UTILS_LOGGING_LOGGER_H
-#define GL_HW_INTERFACES_ISPI_H_
+#define GL_UTILS_LOGGING_LOGGER_H
 
 #include <spdlog/spdlog.h>
 
@@ -15,4 +15,4 @@ namespace gl::utils::log {
 std::shared_ptr<spdlog::logger> createLogger(const std::string& name);
 }  // namespace gl::utils::log
 
-#endif  // GL_HW_INTERFACES_ISPI_H
+#endif  // GL_UTILS_LOGGING_LOGGER_H

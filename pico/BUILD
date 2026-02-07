@@ -37,6 +37,26 @@ cc_binary(
 )
 
 cc_binary(
+    name = "sensor_board_main",
+    srcs = ["sensor_board_main.cc"],
+    defines = [
+        "PICO_STDIO_USB=1",
+        "PICO_STDIO_UART=0",
+    ],
+    deps = [
+        "//com/msg:msgs",
+        "//hw/interfaces/drivers:canInterface",
+        "//hw/interfaces/pico:adcPico",
+        "//hw/interfaces/pico:gpioPico",
+        "//hw/interfaces/pico:i2cPico",
+        "//hw/interfaces/pico:spiPico",
+        "//hw/sensors",
+        "//utils/time:timePico",
+        "@pico-sdk//src/rp2_common/pico_stdlib:pico_stdlib",
+    ],
+)
+
+cc_binary(
     name = "hw_test_com",
     srcs = ["hw_test_com.cc"],
     defines = [

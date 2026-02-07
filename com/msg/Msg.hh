@@ -1,11 +1,11 @@
 #ifndef GL_COM_MSG_MSG_H_
 #define GL_COM_MSG_MSG_H_
 
+#include <array>
 #include <concepts>
 #include <cstring>
 #include <optional>
 #include <span>
-#include <vector>
 
 #include "com/msg/Header.hh"
 #include "com/msg/Type.hh"
@@ -18,6 +18,8 @@ concept IsMsg = requires(T v) {
   {T::TYPE}->std::same_as<const gl::msg::Type&>;
 };
 
+/// The longest message. To avoid dynamic memory allocation.
+constexpr uint32_t MAX_MSG_LEN = 256;
 }  // namespace
 
 namespace gl::msg {
@@ -37,12 +39,15 @@ class Msg {
    */
   template <IsMsg T>
   Msg(const T& msg, uint8_t deviceId, gl::utils::Time timestamp) {
+    msgLen = sizeof(T) + sizeof(gl::msg::Header) + 2;
     const gl::msg::Header header = {
         .type = msg.TYPE, .timestamp_us = timestamp.usec<uint64_t>(), .deviceId = deviceId, .msgLength = sizeof(msg)};
 
-    const auto appendToBuffer = [this](const auto& data) {
+    uint32_t bufferIdx = 0;
+    const auto appendToBuffer = [this, &bufferIdx](const auto& data) {
       std::span<const std::byte> bytes = std::as_bytes(std::span(&data, 1));
-      return serializedMsg.insert(serializedMsg.end(), bytes.begin(), bytes.end());
+      std::copy(bytes.begin(), bytes.end(), serializedMsg.begin() + bufferIdx);
+      bufferIdx += bytes.size();
     };
     appendToBuffer(header);
     appendToBuffer(msg);
@@ -64,7 +69,7 @@ class Msg {
    * Get the stored serialized data
    * @returns const reference to the serialized data
    */
-  const std::vector<std::byte>& getSerializedMsg() const;
+  std::span<const std::byte> getSerializedMsg() const;
 
   /**
    * Gets the deserialized header
@@ -78,7 +83,7 @@ class Msg {
    */
   template <IsMsg T>
   std::optional<T> getMsg() const {
-    if (serializedMsg.size() != sizeof(header) + header.msgLength + 2) {
+    if (msgLen != sizeof(header) + header.msgLength + 2) {
       return std::nullopt;
     }
     if (header.type != T::TYPE) {
@@ -96,7 +101,8 @@ class Msg {
   uint16_t getCrc() const;
 
   gl::msg::Header header;
-  std::vector<std::byte> serializedMsg;
+  uint32_t msgLen;
+  std::array<std::byte, MAX_MSG_LEN> serializedMsg;
 };
 
 }  // namespace gl::msg
