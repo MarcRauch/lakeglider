@@ -27,3 +27,16 @@ cc_library(
         "@asio",
     ],
 )
+
+cc_binary(
+    name = "can_bridge_main",
+    srcs = ["can_bridge_main.cc"],
+    deps = [
+        ":bus",
+        "//hw:pins",
+        "//hw/interfaces/drivers:canInterface",
+        "//hw/interfaces/rpi:spiRpi",
+        "//utils/time:timeLinux",
+        "@gflags",
+    ],
+)

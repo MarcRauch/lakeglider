@@ -11,7 +11,7 @@ cc_library(
         "Imu.hh",
         "Msg.hh",
         "Subscriptions.hh",
-        "Time.hh",
+        "Timesync.hh",
         "Type.hh",
     ],
     visibility = ["//visibility:public"],

@@ -58,12 +58,12 @@ void Client::sendMsg(const gl::msg::Msg& msg) {
                     });
 }
 
-std::optional<gl::msg::Msg> Client::readMsg() {
+std::optional<gl::msg::Msg> Client::readMsg(bool waitBlocking) {
   std::unique_lock<std::mutex> lock(queueMutex);
-  queueCondition.wait(lock, [this] { return !receivedMessages.empty() || !connected; });
-  if (!connected) {
+  if (!connected || (!waitBlocking && receivedMessages.empty())) {
     return std::nullopt;
   }
+  queueCondition.wait(lock, [this] { return !receivedMessages.empty(); });
 
   gl::msg::Msg msg = std::move(receivedMessages.front());
   receivedMessages.pop_front();

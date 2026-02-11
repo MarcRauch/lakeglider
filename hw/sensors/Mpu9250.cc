@@ -1,7 +1,6 @@
 #include "hw/sensors/Mpu9250.hh"
 
 #include <cstddef>
-#include <ostream>
 
 #include "com/msg/Compass.hh"
 #include "utils/constants.hh"
@@ -23,7 +22,6 @@ constexpr uint8_t CMD_INT_PIN_CF = 0x37;
 constexpr uint8_t CMD_WHO_AM_I_COMPASS = 0x00;
 constexpr uint8_t CMD_CTRL_1 = 0x0A;
 constexpr uint8_t CMD_ASAX = 0x10;
-constexpr uint8_t CMD_ST1 = 0x02;
 constexpr uint8_t CMD_HXL = 0x03;
 }  // namespace
 

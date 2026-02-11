@@ -49,9 +49,10 @@ class Client {
 
   /**
    * Blocks and waits for a message on the bus
+   * @pram[in] waitBlocking if set, the call blocks until a message is available
    * @returns The read message or nullopt if reading failed
    */
-  std::optional<gl::msg::Msg> readMsg();
+  std::optional<gl::msg::Msg> readMsg(bool waitBlocking = true);
 
  private:
   void recvHeader();
@@ -65,7 +66,7 @@ class Client {
   asio::ip::tcp::socket socket;
   std::thread networkThread;
 
-  std::mutex queueMutex;
+  mutable std::mutex queueMutex;
   std::condition_variable queueCondition;
   std::deque<gl::msg::Msg> receivedMessages;
 

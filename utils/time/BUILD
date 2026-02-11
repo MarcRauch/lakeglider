@@ -2,11 +2,15 @@ load("@rules_cc//cc:defs.bzl", "cc_library")
 
 cc_library(
     name = "timeInterface",
-    srcs = ["LoopTimer.cc"],
+    srcs = [
+        "LoopTimer.cc",
+        "TimeSynchronizer.cc",
+    ],
     hdrs = [
         "IClock.hh",
         "LoopTimer.hh",
         "Time.hh",
+        "TimeSynchronizer.hh",
     ],
     visibility = ["//visibility:public"],
 )

@@ -12,7 +12,7 @@ enum class Type : uint8_t {
   Battery = 0x01,
   Depth = 0x02,
   Imu = 0x03,
-  Time = 0x04,
+  TimeSync = 0x04,
   Subscriptions = 0x05,
   Compass = 0x06
 };

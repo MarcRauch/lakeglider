@@ -79,28 +79,49 @@ class Time {
    * @param[in] rhs timestamp to be added
    * @returns sum of the two timestamps
    */
-  Time operator+(const Time& rhs) const { return Time::usec(time_us + rhs.usec<uint64_t>()); }
+  Time operator+(const Time& rhs) const { return Time::usec(time_us + rhs.usec<int64_t>()); }
 
   /**
    * Overloads the - operator
    * @param[in] rhs timestamp to be subtracted
    * @returns difference of the two timestamps
    */
-  Time operator-(const Time& rhs) const { return Time::usec(time_us - rhs.usec<uint64_t>()); }
+  Time operator-(const Time& rhs) const { return Time::usec(time_us - rhs.usec<int64_t>()); }
 
   /**
    * Overloads the < operator
    * @param[in] rhs timestamp to be compared
    * @returns true if the timestamp to be compared is larger
    */
-  bool operator<(const Time& rhs) const { return time_us < rhs.usec<uint64_t>(); }
+  bool operator<(const Time& rhs) const { return time_us < rhs.usec<int64_t>(); }
 
   /**
    * Overloads the > operator
    * @param[in] rhs timestamp to be compared
    * @returns true if the timestamp to be compared is smaller
    */
-  bool operator>(const Time& rhs) const { return time_us > rhs.usec<uint64_t>(); }
+  bool operator>(const Time& rhs) const { return time_us > rhs.usec<int64_t>(); }
+
+  /**
+   * Overloads the <= operator
+   * @param[in] rhs timestamp to be compared
+   * @returns true if the timestamp to be compared is larger or equal
+   */
+  bool operator<=(const Time& rhs) const { return time_us <= rhs.usec<int64_t>(); }
+
+  /**
+   * Overloads the >= operator
+   * @param[in] rhs timestamp to be compared
+   * @returns true if the timestamp to be compared is smaller or equal
+   */
+  bool operator>=(const Time& rhs) const { return time_us >= rhs.usec<int64_t>(); }
+
+  /**
+   * Overloads the == operator
+   * @param[in] rhs timestamp to be compared
+   * @returns true if the two times are equal
+   */
+  bool operator==(const Time& rhs) const { return time_us == rhs.usec<int64_t>(); }
 
   /**
    * Overloads the += operator
@@ -111,6 +132,14 @@ class Time {
     this->time_us += rhs.usec<int64_t>();
     return *this;
   }
+
+  /**
+   * Implement scaling a time
+   * @param[in] factor Factor to scale the time with
+   * @returns Scaled time
+   */
+  friend Time operator*(const Time& lhs, double factor) { return Time::usec(factor * lhs.time_us); }
+  friend Time operator*(double factor, const Time& rhs) { return Time::usec(factor * rhs.time_us); }
 
  private:
   int64_t time_us;
